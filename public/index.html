@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PenSuruh - Aplikasi Jasa Suruh &amp; Tugas Harian Terpercaya</title>
+    <link rel="icon" type="image/png" href="./images/sources/hero_courier_clean.jpg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="preload" as="style" href="./build/assets/app-Dhpjc6V5.css" /><link rel="modulepreload" as="script" href="./build/assets/app-Bwn9szyo.js" /><link rel="stylesheet" href="./build/assets/app-Dhpjc6V5.css" /><script type="module" src="./build/assets/app-Bwn9szyo.js"></script></head>
+<body class="bg-white text-gray-900 antialiased selection:bg-[#0471fc] selection:text-white relative min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- FLOATING INTERACTIVE TOAST NOTIFICATION -->
+    <div id="toastNotification" class="fixed top-4 right-4 z-[100] transform -translate-y-24 opacity-0 transition-all duration-300 ease-out max-w-sm w-full pointer-events-none">
+        <div class="bg-white rounded-2xl p-4 shadow-2xl border border-gray-100 flex items-start gap-3 pointer-events-auto">
+            <div id="toastIcon" class="w-9 h-9 rounded-full bg-blue-50 text-[#0471fc] flex items-center justify-center flex-shrink-0 font-bold text-sm">
+                ✓
+            </div>
+            <div class="flex-grow">
+                <h5 id="toastTitle" class="text-sm font-bold text-gray-900 leading-tight">Sukses</h5>
+                <p id="toastMessage" class="text-xs text-gray-600 mt-0.5 leading-relaxed">Operasi berhasil dilakukan.</p>
+            </div>
+            <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600 text-sm font-bold p-1 cursor-pointer">✕</button>
+        </div>
+    </div>
+
+    <!-- WRAPPER UTAMA: Simetris proporsional & ada ruang lega (breathing space) dari tepi browser -->
+    <div class="w-full max-w-[1040px] mx-auto px-2.5 sm:px-6 md:px-8 pt-8 sm:pt-11 md:pt-14 pb-6 flex-grow flex flex-col relative">
+
+        <!-- 1. STICKY FLOATING NAVBAR (Start sedikit ke bawah, pas bersarang di dalam kotak gambar hero) -->
+        <header id="mainNavbar" class="sticky top-3 sm:top-4 md:top-5 z-40 w-full mb-[-66px] sm:mb-[-74px] md:mb-[-82px] px-2 sm:px-4 md:px-5 pointer-events-none transition-all duration-300">
+            <div id="navbarContainer" class="relative w-full bg-white/95 backdrop-blur-md rounded-[14px] sm:rounded-[18px] shadow-sm px-2.5 sm:px-5 md:px-7 py-2 sm:py-2.5 md:py-3 flex items-center justify-between border border-white/80 pointer-events-auto transition-all">
+                <!-- Brand Logo -->
+                <a href="/" class="text-[17px] sm:text-[22px] md:text-[26px] font-black tracking-tight flex items-center select-none flex-shrink-0">
+                    <span class="text-[#0471fc]">Pen</span><span class="text-[#f3c903]">Suruh</span>
+                </a>
+
+                <!-- Navigation Links (Tengah - Desktop & Tablet) -->
+                <nav class="hidden md:flex items-center gap-6 lg:gap-8">
+                    <a href="#about" class="text-[#0471fc] font-bold text-[14px] lg:text-[15px] hover:opacity-75 transition-opacity">About Web</a>
+                    <a href="#review" onclick="openModal('reviewModal'); return false;" class="text-[#0471fc] font-bold text-[14px] lg:text-[15px] hover:opacity-75 transition-opacity">Review</a>
+                    <a href="#pricing" class="text-[#0471fc] font-bold text-[14px] lg:text-[15px] hover:opacity-75 transition-opacity">Pricing</a>
+                    <a href="#contact" class="text-[#0471fc] font-bold text-[14px] lg:text-[15px] hover:opacity-75 transition-opacity">Contact</a>
+                </nav>
+
+                <!-- Auth Buttons (Kanan) -->
+                <div class="flex items-center gap-1 sm:gap-2 md:gap-3 flex-shrink-0">
+                    <button onclick="openModal('loginModal')" class="bg-[#0471fc] hover:bg-[#0060db] text-white font-bold text-[11px] sm:text-[13px] md:text-[14px] px-2.5 sm:px-5 py-1 sm:py-1.5 md:py-2 rounded-full transition-all shadow-sm active:scale-95 cursor-pointer">
+                        Login
+                    </button>
+                    <button onclick="openModal('registerModal')" class="text-[#0471fc] font-bold text-[11px] sm:text-[13px] md:text-[14px] px-1 sm:px-2 py-1 hover:underline transition-all cursor-pointer">
+                        Register
+                    </button>
+                    <!-- Hamburger Menu Button untuk mobile -->
+                    <button id="mobileMenuBtn" class="md:hidden w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-[#0471fc] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer" aria-label="Menu">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Dropdown Card (Floating Absolute di layer atas - Foto hero tidak bergerak / tidak turun sama sekali) -->
+                <div id="mobileMenu" class="hidden absolute top-[calc(100%+8px)] inset-x-0 bg-white/95 backdrop-blur-md rounded-[14px] sm:rounded-[16px] shadow-2xl md:hidden border border-gray-100 overflow-hidden pointer-events-auto transition-all z-50">
+                    <nav class="flex flex-col items-center gap-3 py-4 text-center">
+                        <a href="#about" class="text-[#0471fc] font-bold text-[15px] hover:opacity-75 py-1">About Web</a>
+                        <a href="#review" onclick="openModal('reviewModal'); return false;" class="text-[#0471fc] font-bold text-[15px] hover:opacity-75 py-1">Review</a>
+                        <a href="#pricing" class="text-[#0471fc] font-bold text-[15px] hover:opacity-75 py-1">Pricing</a>
+                        <a href="#contact" class="text-[#0471fc] font-bold text-[15px] hover:opacity-75 py-1">Contact</a>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <!-- 2. HERO SECTION (Kotak gambar membentang rapi melingkupi navbar) -->
+        <section class="w-full pb-8 md:pb-12">
+            <div class="relative w-full rounded-[16px] sm:rounded-[20px] md:rounded-[22px] overflow-hidden shadow-sm aspect-[16/9] md:aspect-[2.05/1] min-h-[350px] md:min-h-[460px] flex flex-col justify-end bg-slate-100 border border-gray-100 pt-20 sm:pt-24 md:pt-28">
+                <!-- Background Image: Courier delivering package to customer -->
+                <img 
+                    src="./images/sources/hero_courier_clean.jpg" 
+                    alt="Kurir PenSuruh mengantar paket" 
+                    class="absolute inset-0 w-full h-full object-cover object-center"
+                    loading="eager"
+                />
+
+                <!-- Bottom Row: "Daftar Sekarang" (kiri) & "VIDIO PANDUAN ORDER" (kanan) -->
+                <div class="relative z-10 flex flex-row items-end justify-between p-3.5 sm:p-5 md:p-6 gap-2">
+                    <!-- Tombol Daftar Sekarang -->
+                    <button onclick="openModal('registerModal')" class="group bg-[#0471fc] hover:bg-[#0060db] text-white font-bold text-[12px] sm:text-[14px] md:text-[15px] pl-4 sm:pl-6 pr-1.5 sm:pr-2.5 py-1.5 sm:py-2 rounded-full shadow-lg flex items-center gap-2 sm:gap-3 transition-all transform active:scale-95 cursor-pointer">
+                        <span class="tracking-wide whitespace-nowrap">Daftar Sekarang</span>
+                        <span class="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full bg-white flex items-center justify-center text-[#0471fc] shadow-sm group-hover:scale-105 transition-transform flex-shrink-0">
+                            <svg class="w-3 sm:w-3.5 h-3 sm:h-3.5 text-[#0471fc]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </span>
+                    </button>
+
+                    <!-- VIDIO PANDUAN ORDER Glass Card -->
+                    <div onclick="openModal('videoModal')" class="glass-effect rounded-[14px] sm:rounded-[18px] p-1.5 sm:p-2.5 md:p-3 shadow-xl flex items-center gap-2 sm:gap-3.5 md:gap-4 cursor-pointer hover:bg-white/30 transition-all active:scale-98 group flex-shrink-0">
+                        <div class="text-white font-black text-[9px] sm:text-[11px] md:text-[13px] tracking-wider leading-[1.2] text-left select-none pl-1">
+                            <div>VIDIO</div>
+                            <div>PANDUAN</div>
+                            <div>ORDER</div>
+                        </div>
+                        <div class="relative w-14 h-10 sm:w-20 sm:h-13 md:w-24 md:h-16 rounded-lg sm:rounded-xl overflow-hidden shadow-md flex-shrink-0 bg-slate-800">
+                            <img 
+                                src="./images/sources/hero_courier_clean.jpg" 
+                                alt="Panduan Order Video Preview" 
+                                class="w-full h-full object-cover object-right group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div class="absolute inset-0 m-auto w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full bg-[#0471fc] group-hover:bg-[#0060db] flex items-center justify-center text-white shadow-md transition-colors">
+                                <svg class="w-2.5 sm:w-3 md:w-3.5 h-2.5 sm:h-3 md:h-3.5 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. ABOUT SECTION (Presisi Sesuai Canva Asli) -->
+        <section id="about" class="w-full py-6 md:py-10">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 items-center">
+                <!-- Left: Cleaning staff photo + Social Icons -->
+                <div class="md:col-span-5 flex flex-col items-start gap-3.5">
+                    <div class="w-full max-w-[280px] sm:max-w-[310px] md:max-w-[320px] rounded-[16px] sm:rounded-[18px] overflow-hidden shadow-sm aspect-[4/3] bg-gray-100 border border-gray-100">
+                        <img 
+                            src="./images/sources/about_cleaners_clean.png" 
+                            alt="Mitra kebersihan PenSuruh" 
+                            class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                            loading="lazy"
+                        />
+                    </div>
+
+                    <!-- Social Media Icons (Instagram, YouTube, TikTok) -->
+                    <div class="flex items-center gap-4 text-gray-800 pl-1.5">
+                        <!-- Instagram -->
+                        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="hover:text-[#0471fc] transition-colors p-0.5">
+                            <svg class="w-4.5 h-4.5 fill-current" viewBox="0 0 24 24">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                        </a>
+                        <!-- YouTube -->
+                        <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="hover:text-[#0471fc] transition-colors p-0.5">
+                            <svg class="w-4.5 h-4.5 fill-current" viewBox="0 0 24 24">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                        </a>
+                        <!-- TikTok -->
+                        <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" aria-label="TikTok" class="hover:text-[#0471fc] transition-colors p-0.5">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                                <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right: Description Paragraph & "CALL ME" Button -->
+                <div class="md:col-span-7 flex flex-col items-start text-left gap-4 md:gap-5">
+                    <p class="text-gray-900 font-bold text-[14px] sm:text-[16px] md:text-[17px] leading-[1.6]">
+                        <span class="font-black text-black">PENSURUH</span> menghubungkan Anda dengan mitra terpercaya untuk berbagai tugas harian, mulai dari antar barang, bersih-bersih, merawat tanaman, sampai teman ngobrol. Semuanya aman, cepat, dan terukur, jadi Anda bisa fokus pada hal yang lebih penting.
+                    </p>
+
+                    <!-- "CALL ME" Button with Circle Search/Phone Icon -->
+                    <button onclick="openModal('contactModal')" class="group bg-[#0471fc] hover:bg-[#0060db] text-white font-bold text-[13px] sm:text-[14px] pl-5 sm:pl-6 pr-2 py-1.5 rounded-full shadow-md flex items-center gap-2.5 transition-all active:scale-95 cursor-pointer">
+                        <span class="tracking-wider">CALL ME</span>
+                        <span class="w-6 h-6 rounded-full bg-white flex items-center justify-center text-[#0471fc] shadow-sm group-hover:scale-105 transition-transform">
+                            <svg class="w-3.5 h-3.5 text-[#0471fc]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. SERVICE SHOWCASE CAROUSEL ("Nyruh apapun ada di sini") -->
+        <section class="w-full py-6 md:py-10">
+            <!-- Header with Title & Arrow Navigation -->
+            <div class="flex items-end justify-between mb-6 sm:mb-8">
+                <div>
+                    <h2 class="text-2xl sm:text-3xl md:text-[36px] font-extrabold text-black tracking-tight leading-[1.15]">
+                        Nyruh apapun<br>ada di sini
+                    </h2>
+                </div>
+
+                <!-- Carousel Controls: Prev (<) and Next (>) -->
+                <div class="flex items-center gap-2">
+                    <button id="carouselPrevBtn" aria-label="Previous" class="w-8 h-8 rounded-full bg-white border border-gray-300 text-gray-800 flex items-center justify-center hover:bg-gray-50 transition shadow-sm cursor-pointer active:scale-95">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <button id="carouselNextBtn" aria-label="Next" class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 transition shadow-sm cursor-pointer active:scale-95">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Carousel Cards Deck (Snap simetris, drag-to-scroll, & sejajar) -->
+            <div id="serviceCardsDeck" class="flex gap-3.5 sm:gap-4 md:gap-5 overflow-x-auto no-scrollbar scroll-smooth py-2 px-0 snap-x snap-mandatory cursor-grab active:cursor-grabbing select-none">
+                
+                <!-- Card 1: Antar Barang -->
+                <div class="snap-start flex-shrink-0 w-[205px] sm:w-[225px] md:w-[240px] aspect-[4/5] rounded-[16px] sm:rounded-[18px] overflow-hidden relative shadow-sm group bg-gray-100 border border-gray-100">
+                    <img 
+                        src="./images/sources/woman_hijab_delivery.jpg" 
+                        alt="Antar Barang dan Belanja" 
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none"
+                        loading="lazy"
+                    />
+                    <!-- Overlay White Pill Button with Black Circle Arrow ↗ -->
+                    <div class="absolute inset-x-0 bottom-4 flex justify-center px-4">
+                        <button onclick="openBookingService('Antar Barang / Belanja')" class="w-22 sm:w-24 md:w-26 h-8 sm:h-9 bg-white hover:bg-gray-50 rounded-full shadow-md flex items-center justify-end pr-1 transition-all active:scale-95 cursor-pointer">
+                            <span class="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-black text-white flex items-center justify-center">
+                                <svg class="w-3 sm:w-3.5 h-3 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7V17"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 2: Merawat Tanaman -->
+                <div class="snap-start flex-shrink-0 w-[205px] sm:w-[225px] md:w-[240px] aspect-[4/5] rounded-[16px] sm:rounded-[18px] overflow-hidden relative shadow-sm group bg-gray-100 border border-gray-100">
+                    <img 
+                        src="./images/sources/watering_plants.jpg" 
+                        alt="Merawat Tanaman dan Kebun" 
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none"
+                        loading="lazy"
+                    />
+                    <!-- Overlay White Pill Button with Black Circle Arrow ↗ -->
+                    <div class="absolute inset-x-0 bottom-4 flex justify-center px-4">
+                        <button onclick="openBookingService('Merawat Tanaman')" class="w-22 sm:w-24 md:w-26 h-8 sm:h-9 bg-white hover:bg-gray-50 rounded-full shadow-md flex items-center justify-end pr-1 transition-all active:scale-95 cursor-pointer">
+                            <span class="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-black text-white flex items-center justify-center">
+                                <svg class="w-3 sm:w-3.5 h-3 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7V17"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 3: Teman Ngobrol -->
+                <div class="snap-start flex-shrink-0 w-[205px] sm:w-[225px] md:w-[240px] aspect-[4/5] rounded-[16px] sm:rounded-[18px] overflow-hidden relative shadow-sm group bg-gray-100 border border-gray-100">
+                    <img 
+                        src="./images/sources/couch_conversation.jpg" 
+                        alt="Teman Ngobrol dan Curhat" 
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none"
+                        loading="lazy"
+                    />
+                    <!-- Overlay White Pill Button with Black Circle Arrow ↗ -->
+                    <div class="absolute inset-x-0 bottom-4 flex justify-center px-4">
+                        <button onclick="openBookingService('Teman Ngobrol')" class="w-22 sm:w-24 md:w-26 h-8 sm:h-9 bg-white hover:bg-gray-50 rounded-full shadow-md flex items-center justify-end pr-1 transition-all active:scale-95 cursor-pointer">
+                            <span class="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-black text-white flex items-center justify-center">
+                                <svg class="w-3 sm:w-3.5 h-3 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7V17"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 4: Antar Dokumen Kilat -->
+                <div class="snap-start flex-shrink-0 w-[205px] sm:w-[225px] md:w-[240px] aspect-[4/5] rounded-[16px] sm:rounded-[18px] overflow-hidden relative shadow-sm group bg-gray-100 border border-gray-100">
+                    <img 
+                        src="./images/sources/hero_courier_clean.jpg" 
+                        alt="Antar Paket dan Dokumen" 
+                        class="w-full h-full object-cover object-right group-hover:scale-105 transition-transform duration-500 pointer-events-none"
+                        loading="lazy"
+                    />
+                    <!-- Overlay White Pill Button with Black Circle Arrow ↗ -->
+                    <div class="absolute inset-x-0 bottom-4 flex justify-center px-4">
+                        <button onclick="openBookingService('Antar Dokumen / Paket')" class="w-22 sm:w-24 md:w-26 h-8 sm:h-9 bg-white hover:bg-gray-50 rounded-full shadow-md flex items-center justify-end pr-1 transition-all active:scale-95 cursor-pointer">
+                            <span class="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-black text-white flex items-center justify-center">
+                                <svg class="w-3 sm:w-3.5 h-3 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7V17"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 5: Bersih-bersih Rumah & Kos -->
+                <div class="snap-start flex-shrink-0 w-[205px] sm:w-[225px] md:w-[240px] aspect-[4/5] rounded-[16px] sm:rounded-[18px] overflow-hidden relative shadow-sm group bg-gray-100 border border-gray-100">
+                    <img 
+                        src="./images/sources/about_cleaners_clean.png" 
+                        alt="Bersih-bersih Rumah dan Kos" 
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none"
+                        loading="lazy"
+                    />
+                    <!-- Overlay White Pill Button with Black Circle Arrow ↗ -->
+                    <div class="absolute inset-x-0 bottom-4 flex justify-center px-4">
+                        <button onclick="openBookingService('Bersih-bersih Rumah')" class="w-22 sm:w-24 md:w-26 h-8 sm:h-9 bg-white hover:bg-gray-50 rounded-full shadow-md flex items-center justify-end pr-1 transition-all active:scale-95 cursor-pointer">
+                            <span class="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-black text-white flex items-center justify-center">
+                                <svg class="w-3 sm:w-3.5 h-3 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7V17"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Carousel Dot Pagination Interaktif -->
+            <div id="carouselDots" class="flex justify-center items-center gap-1.5 mt-3 sm:mt-4">
+                <button aria-label="Slide 1" class="carousel-dot w-6 h-1.5 rounded-full bg-[#0471fc] transition-all cursor-pointer" onclick="goToSlide(0)"></button>
+                <button aria-label="Slide 2" class="carousel-dot w-1.5 h-1.5 rounded-full bg-gray-300 transition-all hover:bg-gray-400 cursor-pointer" onclick="goToSlide(1)"></button>
+                <button aria-label="Slide 3" class="carousel-dot w-1.5 h-1.5 rounded-full bg-gray-300 transition-all hover:bg-gray-400 cursor-pointer" onclick="goToSlide(2)"></button>
+                <button aria-label="Slide 4" class="carousel-dot w-1.5 h-1.5 rounded-full bg-gray-300 transition-all hover:bg-gray-400 cursor-pointer" onclick="goToSlide(3)"></button>
+                <button aria-label="Slide 5" class="carousel-dot w-1.5 h-1.5 rounded-full bg-gray-300 transition-all hover:bg-gray-400 cursor-pointer" onclick="goToSlide(4)"></button>
+            </div>
+        </section>
+
+        <!-- 5. PRICING & VALUE PROPOSITION ("Harga Fleksibel Bisa Tawar menawar") -->
+        <section id="pricing" class="w-full py-8 md:py-14">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-8 lg:gap-10 items-stretch">
+                <!-- Left Column: Photo & 100% Badge (Simetris di Mobile & Desktop) -->
+                <div class="md:col-span-5 lg:col-span-4 flex flex-col items-center md:items-start gap-3.5 w-full">
+                    <!-- Photo of woman in hijab receiving goods -->
+                    <div class="w-full max-w-[280px] sm:max-w-[310px] md:max-w-none rounded-[16px] sm:rounded-[18px] overflow-hidden shadow-sm aspect-[4/4.2] bg-gray-100 border border-gray-100">
+                        <img 
+                            src="./images/sources/woman_hijab_delivery.jpg" 
+                            alt="Transaksi Aman PenSuruh" 
+                            class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                            loading="lazy"
+                        />
+                    </div>
+
+                    <!-- Trust Badge: "100% DI JAMIN TERPERCAYA" (Tinggi presisi) -->
+                    <div class="w-full max-w-[280px] sm:max-w-[310px] md:max-w-none h-[64px] sm:h-[72px] bg-[#f0f5fc] border border-blue-100/70 rounded-[14px] sm:rounded-[16px] px-5 flex items-center justify-center gap-3.5 shadow-sm">
+                        <span class="text-3xl sm:text-4xl md:text-[42px] font-black text-[#0471fc] tracking-tight leading-none">
+                            100%
+                        </span>
+                        <div class="text-left font-black leading-tight tracking-wide">
+                            <div class="text-[#0471fc] text-[11px] sm:text-xs md:text-[13px] tracking-wider uppercase">DI JAMIN</div>
+                            <div class="text-[#0471fc] text-[11px] sm:text-xs md:text-[13px] tracking-wider uppercase">TERPERCAYA</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Pricing Content & Cloud Booking Button (Sejajar tingginya) -->
+                <div class="md:col-span-7 lg:col-span-8 flex flex-col justify-between py-1 w-full">
+                    <!-- Text Section (Atas) -->
+                    <div class="space-y-2 md:space-y-3">
+                        <!-- Top Line: "Harga Fleksibel" & "BISA AJUKAN RANGE HARGA" -->
+                        <div class="flex items-start justify-between gap-3">
+                            <h3 class="text-2xl sm:text-3xl md:text-[36px] lg:text-[40px] font-black text-black tracking-tight leading-none">
+                                Harga Fleksibel
+                            </h3>
+                            <span class="text-[10px] sm:text-[11px] md:text-xs font-black text-black uppercase tracking-wider text-right leading-tight select-none flex-shrink-0">
+                                BISA AJUKAN<br>RANGE<br>HARGA
+                            </span>
+                        </div>
+
+                        <!-- Second Line: "Bisa Tawar menawar" -->
+                        <div>
+                            <h3 class="text-2xl sm:text-3xl md:text-[36px] lg:text-[40px] font-black text-black tracking-tight leading-none">
+                                Bisa Tawar menawar
+                            </h3>
+                        </div>
+
+                        <!-- Third Line: Description & "Lohh" -->
+                        <div class="flex items-center justify-between gap-3 pt-2 md:pt-3">
+                            <p class="text-[10px] sm:text-[11px] md:text-xs font-bold text-black uppercase tracking-wider leading-relaxed max-w-[360px] sm:max-w-[420px]">
+                                LANGSUNG BERDISKUSI DENGAN<br class="hidden sm:inline"> PESURUH DI DALAM CHAT, GARANSI<br class="hidden sm:inline"> JAMINAN UANG KEMBALI
+                            </p>
+                            <span class="text-3xl sm:text-4xl md:text-[48px] font-black text-black tracking-tight select-none leading-none flex-shrink-0">
+                                Lohh
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Booking Banner: "BOOKING SURUH ->" (Tinggi sejajar badge 100%) -->
+                    <div class="pt-5 md:pt-3 w-full flex justify-center md:justify-start">
+                        <button onclick="openModal('bookingModal')" class="w-full max-w-[280px] sm:max-w-[310px] md:max-w-none h-[64px] sm:h-[72px] rounded-[14px] sm:rounded-[16px] px-6 cloud-booking-btn bg-[#c1e8fc] hover:brightness-105 active:scale-[0.99] text-black font-black text-base sm:text-lg md:text-xl tracking-wider uppercase text-center shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-sky-200/60" style="background-image: url('./images/sources/cloud_sky_texture.png'); background-size: cover; background-position: center;">
+                            <span>BOOKING SURUH -&gt;</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. FOOTER SECTION (Simetris di Mobile & Desktop) -->
+        <footer id="contact" class="w-full mt-8 md:mt-14 pb-4 sm:pb-6">
+            <div class="rounded-[18px] sm:rounded-[22px] bg-[#007dfe] p-5 sm:p-7 md:p-9 text-white shadow-xl">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-4 items-center text-left">
+                    
+                    <!-- Column 1: Customer Service (Left) -->
+                    <div class="md:col-span-5 flex flex-col items-start gap-2.5">
+                        <h4 class="font-bold text-xs sm:text-sm tracking-wide lowercase text-white">
+                            customer service
+                        </h4>
+                        <div class="space-y-1.5 text-white">
+                            <!-- Phone -->
+                            <a href="tel:012345696789" class="flex items-center gap-2 font-bold text-xs sm:text-sm md:text-[15px] hover:underline">
+                                <svg class="w-4 h-4 fill-current flex-shrink-0" viewBox="0 0 24 24">
+                                    <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                                </svg>
+                                <span>(0123) 4569 6789</span>
+                            </a>
+                            <!-- Email -->
+                            <a href="mailto:customercare@gmail.com" class="flex items-center gap-2 font-bold text-xs sm:text-sm md:text-[15px] hover:underline">
+                                <svg class="w-4 h-4 fill-none stroke-currentColor stroke-2 flex-shrink-0" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                <span>customercare@gmail.com</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Social Media (Center) -->
+                    <div class="md:col-span-3 flex flex-col items-start gap-2.5">
+                        <h4 class="font-bold text-[11px] sm:text-xs md:text-sm tracking-wider uppercase text-white">
+                            YOU CAN FIND US AT
+                        </h4>
+                        <div class="flex items-center gap-3.5 text-white">
+                            <!-- Instagram -->
+                            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="hover:opacity-80 transition-opacity p-1">
+                                <svg class="w-4.5 h-4.5 fill-current" viewBox="0 0 24 24">
+                                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                </svg>
+                            </a>
+                            <!-- YouTube -->
+                            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="hover:opacity-80 transition-opacity p-1">
+                                <svg class="w-4.5 h-4.5 fill-current" viewBox="0 0 24 24">
+                                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                </svg>
+                            </a>
+                            <!-- TikTok -->
+                            <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" aria-label="TikTok" class="hover:opacity-80 transition-opacity p-1">
+                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                                    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Column 3: Partner Recruitment Box (Right) -->
+                    <div class="md:col-span-4 flex justify-center md:justify-end">
+                        <div class="bg-white rounded-2xl p-4 text-center w-full max-w-[240px] shadow-lg flex flex-col items-center justify-center gap-2">
+                            <p class="text-[#0471fc] font-bold text-[11px] sm:text-xs leading-snug">
+                                Cari penghasilan tambahan yang fleksibel?
+                            </p>
+                            <button onclick="openModal('registerModal')" class="bg-[#0471fc] hover:bg-[#0060db] text-white text-[12px] font-bold rounded-full px-5 py-1.5 shadow-sm transition-all active:scale-95 cursor-pointer">
+                                Daftar Disini
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Soft Ambient Bottom Gradient Glow matching Canva's background -->
+    <div class="w-full h-44 ambient-glow -mt-20 pointer-events-none"></div>
+
+    <!-- ==================== MODALS & POPUPS ==================== -->
+
+    <!-- 1. LOGIN MODAL -->
+    <div id="loginModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-[20px] max-w-md w-full p-6 md:p-8 shadow-2xl relative">
+            <button onclick="closeModal('loginModal')" class="absolute top-5 right-5 text-gray-400 hover:text-black transition cursor-pointer">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <div class="text-center mb-6">
+                <div class="text-2xl font-black mb-1">
+                    <span class="text-[#0471fc]">Pen</span><span class="text-[#f3c903]">Suruh</span>
+                </div>
+                <h3 class="text-xl font-bold text-black">Masuk ke Akun Anda</h3>
+                <p class="text-xs text-gray-500 mt-1">Kelola tugas atau mulai tawarkan jasa Anda</p>
+            </div>
+            <form onsubmit="handleAuthSubmit(event, 'Login Berhasil!', 'Selamat datang kembali di PenSuruh.')" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Nomor WhatsApp / Email</label>
+                    <input type="text" required placeholder="0812xxxx atau email@domain.com" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#0471fc] focus:ring-1 focus:ring-[#0471fc]">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Password</label>
+                    <input type="password" required placeholder="••••••••" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#0471fc] focus:ring-1 focus:ring-[#0471fc]">
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="rounded text-[#0471fc]">
+                        <span>Ingat saya</span>
+                    </label>
+                    <a href="#" class="text-[#0471fc] font-bold hover:underline">Lupa sandi?</a>
+                </div>
+                <button type="submit" class="w-full bg-[#0471fc] hover:bg-[#0060db] text-white font-bold py-3 rounded-full text-sm shadow-md transition active:scale-98 cursor-pointer">
+                    Masuk Sekarang
+                </button>
+                <div class="text-center text-xs text-gray-500 pt-2">
+                    Belum punya akun? <button type="button" onclick="switchModal('loginModal', 'registerModal')" class="text-[#0471fc] font-bold hover:underline cursor-pointer">Daftar sekarang</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. REGISTER MODAL (CUSTOMER & MITRA) -->
+    <div id="registerModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-[20px] max-w-lg w-full p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('registerModal')" class="absolute top-5 right-5 text-gray-400 hover:text-black transition cursor-pointer">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <div class="text-center mb-6">
+                <div class="text-2xl font-black mb-1">
+                    <span class="text-[#0471fc]">Pen</span><span class="text-[#f3c903]">Suruh</span>
+                </div>
+                <h3 class="text-xl font-bold text-black">Pendaftaran Akun Baru</h3>
+                <p class="text-xs text-gray-500 mt-1">Pilih peran akun Anda untuk memulai</p>
+                <!-- Role Tabs -->
+                <div class="flex bg-gray-100 p-1 rounded-full mt-4 max-w-xs mx-auto text-xs font-bold">
+                    <button type="button" id="tabCustomerBtn" onclick="setRegisterRole('customer')" class="flex-1 py-1.5 rounded-full bg-[#0471fc] text-white transition cursor-pointer">Pengguna Jasa</button>
+                    <button type="button" id="tabMitraBtn" onclick="setRegisterRole('mitra')" class="flex-1 py-1.5 rounded-full text-gray-600 transition cursor-pointer">Mitra Pesuruh</button>
+                </div>
+            </div>
+
+            <form onsubmit="handleAuthSubmit(event, 'Pendaftaran Terkirim!', 'Silakan verifikasi kode OTP yang kami kirimkan ke WhatsApp Anda.')" class="space-y-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Nama Lengkap</label>
+                    <input type="text" required placeholder="Nama sesuai KTP" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#0471fc] focus:ring-1 focus:ring-[#0471fc]">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Nomor WhatsApp Aktif</label>
+                    <input type="tel" required placeholder="08xxxxxxxxxx" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#0471fc] focus:ring-1 focus:ring-[#0471fc]">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Kota / Domisili</label>
+                    <select class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#0471fc] focus:ring-1 focus:ring-[#0471fc]">
+                        <option>Jabodetabek</option>
+                        <option>Bandung &amp; Sekitarnya</option>
+                        <option>Surabaya &amp; Malang</option>
+                        <option>Semarang &amp; Solo</option>
+                        <option>Yogyakarta</option>
+                        <option>Kota Lainnya</option>
+                    </select>
+                </div>
+                <div id="mitraSkillsField" class="hidden">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Layanan yang Ingin Anda Tawarkan</label>
+                    <div class="grid grid-cols-2 gap-2 text-xs font-medium text-gray-700">
+                        <label class="flex items-center gap-1.5"><input type="checkbox" checked class="rounded text-[#0471fc]"> Antar Barang</label>
+                        <label class="flex items-center gap-1.5"><input type="checkbox" checked class="rounded text-[#0471fc]"> Bersih-bersih</label>
+                        <label class="flex items-center gap-1.5"><input type="checkbox" class="rounded text-[#0471fc]"> Rawat Tanaman</label>
+                        <label class="flex items-center gap-1.5"><input type="checkbox" class="rounded text-[#0471fc]"> Teman Ngobrol</label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Buat Password</label>
+                    <input type="password" required placeholder="Minimal 8 karakter" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#0471fc] focus:ring-1 focus:ring-[#0471fc]">
+                </div>
+                <button type="submit" class="w-full bg-[#0471fc] hover:bg-[#0060db] text-white font-bold py-3 rounded-full text-sm shadow-md transition active:scale-98 mt-2 cursor-pointer">
+                    Daftar Sekarang
+                </button>
+                <div class="text-center text-xs text-gray-500 pt-1">
+                    Sudah punya akun? <button type="button" onclick="switchModal('registerModal', 'loginModal')" class="text-[#0471fc] font-bold hover:underline cursor-pointer">Masuk disini</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. BOOKING / PESAN SURUH MODAL (INTERAKTIF DENGAN SLIDER TAWAR HARGA) -->
+    <div id="bookingModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-[20px] max-w-lg w-full p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('bookingModal')" class="absolute top-5 right-5 text-gray-400 hover:text-black transition cursor-pointer">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <div class="mb-5">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#0471fc]">Booking Online</span>
+                <h3 class="text-2xl font-black text-black">Form Pemesanan PenSuruh</h3>
+                <p class="text-xs text-gray-500 mt-1">Bisa ajukan range harga &amp; tawar menawar langsung di chat!</p>
+            </div>
+
+            <form onsubmit="handleBookingSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Jenis Layanan yang Dibutuhkan</label>
+                    <select id="bookingServiceType" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold focus:outline-none focus:border-[#0471fc]">
+                        <option>Antar Barang / Belanja</option>
+                        <option>Bersih-bersih Rumah &amp; Kos</option>
+                        <option>Merawat Tanaman &amp; Kebun</option>
+                        <option>Teman Ngobrol / Pendamping Acara</option>
+                        <option>Antar Dokumen / Paket Kilat</option>
+                        <option>Tugas Harian Kustom Lainnya</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Deskripsi Tugas yang Harus Dikerjakan</label>
+                    <textarea rows="3" required placeholder="Contoh: Belikan beras 5kg dan minyak 2L di minimarket terdekat lalu antar ke jl. Merdeka no 10" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#0471fc]"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Lokasi Pengerjaan</label>
+                        <input type="text" required placeholder="Alamat / Area" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#0471fc]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Waktu / Jadwal</label>
+                        <input type="datetime-local" required class="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-xs md:text-sm focus:outline-none focus:border-[#0471fc]">
+                    </div>
+                </div>
+
+                <!-- Price Range Negotation (Interaktif Real-time) -->
+                <div class="bg-[#f0f7ff] p-4 rounded-2xl border border-blue-100">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="text-xs font-bold text-[#0471fc]">Ajukan Range Harga Tawar Anda</label>
+                        <span class="text-xs font-black text-black bg-white px-2.5 py-1 rounded-full shadow-xs border border-blue-100" id="priceRangeLabel">Rp 20.000 - Rp 55.000</span>
+                    </div>
+                    <input type="range" id="priceSlider" min="15000" max="250000" step="5000" value="35000" oninput="updatePriceLabel(this.value)" class="w-full accent-[#0471fc] cursor-pointer mt-1">
+                    
+                    <!-- Live Deal Probability Meter -->
+                    <div class="flex items-center justify-between text-[11px] font-semibold text-gray-600 mt-2 pt-2 border-t border-blue-100/60">
+                        <span>Peluang Diterima Cepat:</span>
+                        <span id="dealProbability" class="font-bold text-emerald-600">⚡ 94% (Sangat Menarik Bagi Mitra)</span>
+                    </div>
+                    <p class="text-[10px] text-gray-500 mt-1">100% Bebas tawar-menawar langsung dengan calon mitra pesuruh di chat WhatsApp.</p>
+                </div>
+
+                <button type="submit" class="w-full bg-[#0471fc] hover:bg-[#0060db] text-white font-bold py-3.5 rounded-full text-sm shadow-md transition active:scale-98 cursor-pointer">
+                    Kirim Permintaan Booking
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. VIDEO GUIDE MODAL (INTERAKTIF DENGAN SIMULATOR PEMUTAR & LANGKAH PANDUAN) -->
+    <div id="videoModal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-[#111827] text-white rounded-[22px] max-w-2xl w-full p-4 md:p-6 shadow-2xl relative border border-gray-800">
+            <button onclick="closeModal('videoModal')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white text-white hover:text-black font-bold flex items-center justify-center transition cursor-pointer">
+                ✕
+            </button>
+            <div class="mb-3">
+                <span class="text-[11px] font-bold text-[#0471fc] tracking-wider uppercase">Panduan Interaktif</span>
+                <h4 class="text-lg md:text-xl font-bold text-white">Cara Praktis Memesan di PenSuruh</h4>
+            </div>
+
+            <!-- Video Player Simulator -->
+            <div class="aspect-video w-full rounded-2xl overflow-hidden bg-black relative flex items-center justify-center border border-gray-800 group">
+                <img 
+                    id="videoGuideThumb"
+                    src="./images/sources/hero_courier_clean.jpg" 
+                    alt="Video Guide Preview" 
+                    class="w-full h-full object-cover opacity-85 transition-opacity"
+                />
+                
+                <!-- Play/Pause Overlay Button -->
+                <button id="videoPlayBtn" onclick="toggleGuideVideoPlay()" class="absolute inset-0 m-auto w-14 h-14 md:w-16 md:h-16 rounded-full bg-[#0471fc]/90 hover:bg-[#0471fc] text-white flex items-center justify-center shadow-xl transition-all transform active:scale-90 cursor-pointer">
+                    <svg id="playIcon" class="w-6 h-6 md:w-7 md:h-7 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <svg id="pauseIcon" class="w-6 h-6 md:w-7 md:h-7 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+
+                <!-- Status Banner -->
+                <div id="videoPlayingBanner" class="absolute bottom-3 left-3 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-medium hidden">
+                    ▶ Memutar Simulasi: Langkah 1 dari 3
+                </div>
+            </div>
+
+            <!-- Steps checklist below video -->
+            <div class="grid grid-cols-3 gap-2 mt-4 text-xs">
+                <button type="button" onclick="selectVideoStep(1)" id="stepTab1" class="video-step-tab bg-[#0471fc]/20 border border-[#0471fc] p-2.5 rounded-xl text-left transition cursor-pointer">
+                    <span class="font-bold text-[#0471fc] block mb-0.5">1. Pilih Tugas</span>
+                    <span class="text-gray-300 text-[11px]">Tentukan tugas dan detail lokasi.</span>
+                </button>
+                <button type="button" onclick="selectVideoStep(2)" id="stepTab2" class="video-step-tab bg-white/5 border border-white/10 hover:bg-white/10 p-2.5 rounded-xl text-left transition cursor-pointer">
+                    <span class="font-bold text-gray-400 block mb-0.5">2. Tawar Harga</span>
+                    <span class="text-gray-400 text-[11px]">Ajukan budget fleksibel di chat.</span>
+                </button>
+                <button type="button" onclick="selectVideoStep(3)" id="stepTab3" class="video-step-tab bg-white/5 border border-white/10 hover:bg-white/10 p-2.5 rounded-xl text-left transition cursor-pointer">
+                    <span class="font-bold text-gray-400 block mb-0.5">3. Beres &amp; Bayar</span>
+                    <span class="text-gray-400 text-[11px]">Garansi 100% uang kembali.</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. CONTACT / CALL ME MODAL -->
+    <div id="contactModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-[20px] max-w-sm w-full p-6 text-center shadow-2xl relative">
+            <button onclick="closeModal('contactModal')" class="absolute top-4 right-4 text-gray-400 hover:text-black cursor-pointer font-bold">✕</button>
+            <div class="w-14 h-14 rounded-full bg-blue-50 text-[#0471fc] mx-auto flex items-center justify-center mb-3">
+                <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+            </div>
+            <h3 class="text-xl font-bold text-black">Hubungi PenSuruh</h3>
+            <p class="text-xs text-gray-500 mt-1 mb-5">Tim customer service kami siap membantu Anda 24/7</p>
+            <div class="space-y-2.5">
+                <a href="https://wa.me/62812345696789?text=Halo%20PenSuruh%2C%20saya%20butuh%20bantuan%20tugas" target="_blank" class="w-full bg-[#25D366] hover:bg-[#1fb355] text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm shadow transition">
+                    Chat WhatsApp Resmi
+                </a>
+                <a href="tel:012345696789" class="w-full bg-[#0471fc] hover:bg-[#0060db] text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm shadow transition">
+                    Telepon (0123) 4569 6789
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. REVIEW MODAL (Nav Review Click) -->
+    <div id="reviewModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-[20px] max-w-lg w-full p-6 md:p-8 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+            <button onclick="closeModal('reviewModal')" class="absolute top-5 right-5 text-gray-400 hover:text-black transition cursor-pointer font-bold">
+                ✕
+            </button>
+            <div class="text-center mb-6">
+                <span class="text-xs font-bold uppercase tracking-widest text-[#0471fc]">Testimoni Pengguna</span>
+                <h3 class="text-2xl font-black text-black mt-1">Ulasan &amp; Review Pelanggan</h3>
+                <div class="flex items-center justify-center gap-1 text-[#f3c903] text-lg mt-2">
+                    ★★★★★ <span class="text-xs font-bold text-gray-600 ml-1.5">(4.9/5 dari 2.400+ ulasan)</span>
+                </div>
+            </div>
+            <div class="space-y-3.5">
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="font-bold text-sm text-black">Rina Safitri</span>
+                        <span class="text-[#f3c903] text-xs">★★★★★</span>
+                    </div>
+                    <p class="text-xs text-gray-600 leading-relaxed">"Sangat terbantu pas lagi repot kerjaan kantor, titip belanjaan pasar diantarkan lengkap dan aman. Harga bisa tawar langsung!"</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="font-bold text-sm text-black">Dimas Pratama</span>
+                        <span class="text-[#f3c903] text-xs">★★★★★</span>
+                    </div>
+                    <p class="text-xs text-gray-600 leading-relaxed">"Mitra pembersih rumahnya teliti banget dan ramah. Apartemen jadi kinclong tanpa repot. Garansi uang kembali bikin tenang."</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="font-bold text-sm text-black">Farhan N.</span>
+                        <span class="text-[#f3c903] text-xs">★★★★★</span>
+                    </div>
+                    <p class="text-xs text-gray-600 leading-relaxed">"Teman ngobrolnya asik dan sopan, cocok banget buat sharing ide project sambil ngopi santai. Solusi praktis masa kini!"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+    <script>
+        // Modal Handlers
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+        }
+
+        function switchModal(fromId, toId) {
+            closeModal(fromId);
+            setTimeout(() => openModal(toId), 150);
+        }
+
+        // Close on backdrop click
+        window.addEventListener('click', function(e) {
+            const modals = ['loginModal', 'registerModal', 'bookingModal', 'videoModal', 'contactModal', 'reviewModal'];
+            modals.forEach(id => {
+                const modal = document.getElementById(id);
+                if (modal && e.target === modal) {
+                    closeModal(id);
+                }
+            });
+        });
+
+        // Close on ESC key
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modals = ['loginModal', 'registerModal', 'bookingModal', 'videoModal', 'contactModal', 'reviewModal'];
+                modals.forEach(id => closeModal(id));
+            }
+        });
+
+        // Interactive Toast Notification System
+        let toastTimeout = null;
+        function showToast(title, message, isSuccess = true) {
+            const toast = document.getElementById('toastNotification');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            if (!toast) return;
+
+            toastTitle.innerText = title;
+            toastMessage.innerText = message;
+
+            if (isSuccess) {
+                toastIcon.className = 'w-9 h-9 rounded-full bg-blue-50 text-[#0471fc] flex items-center justify-center flex-shrink-0 font-bold text-sm';
+                toastIcon.innerText = '✓';
+            } else {
+                toastIcon.className = 'w-9 h-9 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0 font-bold text-sm';
+                toastIcon.innerText = '!';
+            }
+
+            toast.classList.remove('-translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(hideToast, 4000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toastNotification');
+            if (toast) {
+                toast.classList.add('-translate-y-24', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }
+        }
+
+        // Register Role Switcher
+        function setRegisterRole(role) {
+            const customerBtn = document.getElementById('tabCustomerBtn');
+            const mitraBtn = document.getElementById('tabMitraBtn');
+            const skillsField = document.getElementById('mitraSkillsField');
+
+            if (role === 'customer') {
+                customerBtn.className = 'flex-1 py-1.5 rounded-full bg-[#0471fc] text-white transition cursor-pointer';
+                mitraBtn.className = 'flex-1 py-1.5 rounded-full text-gray-600 transition cursor-pointer';
+                skillsField.classList.add('hidden');
+            } else {
+                mitraBtn.className = 'flex-1 py-1.5 rounded-full bg-[#0471fc] text-white transition cursor-pointer';
+                customerBtn.className = 'flex-1 py-1.5 rounded-full text-gray-600 transition cursor-pointer';
+                skillsField.classList.remove('hidden');
+            }
+        }
+
+        // Quick open booking with service pre-selected
+        function openBookingService(serviceName) {
+            const select = document.getElementById('bookingServiceType');
+            if (select) {
+                for (let i = 0; i < select.options.length; i++) {
+                    if (select.options[i].text.toLowerCase().includes(serviceName.toLowerCase())) {
+                        select.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            openModal('bookingModal');
+        }
+
+        // Price range slider updater with live probability
+        function updatePriceLabel(val) {
+            const num = parseInt(val, 10);
+            const min = Math.max(10000, num - 15000);
+            const max = num + 20000;
+            document.getElementById('priceRangeLabel').innerText = 
+                `Rp ${min.toLocaleString('id-ID')} - Rp ${max.toLocaleString('id-ID')}`;
+
+            const probLabel = document.getElementById('dealProbability');
+            if (probLabel) {
+                if (num < 25000) {
+                    probLabel.className = 'font-bold text-amber-600';
+                    probLabel.innerText = '⚡ 78% (Harga Ekonomis, Mungkin Butuh Nego)';
+                } else if (num < 80000) {
+                    probLabel.className = 'font-bold text-emerald-600';
+                    probLabel.innerText = '⚡ 95% (Sangat Menarik Bagi Mitra Terdekat)';
+                } else {
+                    probLabel.className = 'font-bold text-blue-600';
+                    probLabel.innerText = '⚡ 99% (Prioritas Kilat Diambil Mitra)';
+                }
+            }
+        }
+
+        // Submits with Custom Interactive Toast
+        function handleAuthSubmit(e, title, message) {
+            e.preventDefault();
+            closeModal('loginModal');
+            closeModal('registerModal');
+            showToast(title, message, true);
+        }
+
+        function handleBookingSubmit(e) {
+            e.preventDefault();
+            closeModal('bookingModal');
+            showToast('Pemesanan Berhasil!', 'Mitra pesuruh terdekat akan segera menghubungi Anda di WhatsApp untuk konfirmasi penawaran harga.', true);
+        }
+
+        // Carousel Drag-To-Scroll & Dot Pagination
+        const deck = document.getElementById('serviceCardsDeck');
+        const prevBtn = document.getElementById('carouselPrevBtn');
+        const nextBtn = document.getElementById('carouselNextBtn');
+        const dots = document.querySelectorAll('.carousel-dot');
+
+        if (deck) {
+            // Arrow controls
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    deck.scrollBy({ left: -250, behavior: 'smooth' });
+                });
+            }
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    deck.scrollBy({ left: 250, behavior: 'smooth' });
+                });
+            }
+
+            // Mouse Drag To Scroll
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            deck.addEventListener('mousedown', (e) => {
+                isDown = true;
+                deck.classList.add('cursor-grabbing');
+                startX = e.pageX - deck.offsetLeft;
+                scrollLeft = deck.scrollLeft;
+            });
+
+            deck.addEventListener('mouseleave', () => {
+                isDown = false;
+                deck.classList.remove('cursor-grabbing');
+            });
+
+            deck.addEventListener('mouseup', () => {
+                isDown = false;
+                deck.classList.remove('cursor-grabbing');
+            });
+
+            deck.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - deck.offsetLeft;
+                const walk = (x - startX) * 1.5;
+                deck.scrollLeft = scrollLeft - walk;
+            });
+
+            // Update Dots on scroll
+            deck.addEventListener('scroll', () => {
+                const totalCards = 5;
+                const scrollPercentage = deck.scrollLeft / (deck.scrollWidth - deck.clientWidth || 1);
+                const activeIndex = Math.min(totalCards - 1, Math.round(scrollPercentage * (totalCards - 1)));
+                
+                dots.forEach((dot, idx) => {
+                    if (idx === activeIndex) {
+                        dot.className = 'carousel-dot w-6 h-1.5 rounded-full bg-[#0471fc] transition-all cursor-pointer';
+                    } else {
+                        dot.className = 'carousel-dot w-1.5 h-1.5 rounded-full bg-gray-300 transition-all hover:bg-gray-400 cursor-pointer';
+                    }
+                });
+            });
+        }
+
+        function goToSlide(index) {
+            if (deck) {
+                const cardWidth = 240 + 16;
+                deck.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+            }
+        }
+
+        // Mobile Hamburger Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mobileMenu.classList.toggle('hidden');
+            });
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!mobileMenu.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+        }
+
+        // Sticky Navbar Dynamic Shadow on Scroll
+        window.addEventListener('scroll', () => {
+            const navbarContainer = document.getElementById('navbarContainer');
+            if (navbarContainer) {
+                if (window.scrollY > 30) {
+                    navbarContainer.classList.add('shadow-md', 'border-gray-100');
+                    navbarContainer.classList.remove('shadow-sm');
+                } else {
+                    navbarContainer.classList.remove('shadow-md', 'border-gray-100');
+                    navbarContainer.classList.add('shadow-sm');
+                }
+            }
+        });
+
+        // Video Guide Step Simulator
+        let isVideoPlaying = false;
+        function toggleGuideVideoPlay() {
+            isVideoPlaying = !isVideoPlaying;
+            const playIcon = document.getElementById('playIcon');
+            const pauseIcon = document.getElementById('pauseIcon');
+            const banner = document.getElementById('videoPlayingBanner');
+
+            if (isVideoPlaying) {
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+                banner.classList.remove('hidden');
+            } else {
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                banner.classList.add('hidden');
+            }
+        }
+
+        function selectVideoStep(stepNum) {
+            const banner = document.getElementById('videoPlayingBanner');
+            const tab1 = document.getElementById('stepTab1');
+            const tab2 = document.getElementById('stepTab2');
+            const tab3 = document.getElementById('stepTab3');
+
+            [tab1, tab2, tab3].forEach((tab, index) => {
+                const step = index + 1;
+                const titleSpan = tab.querySelector('span:first-child');
+                const descSpan = tab.querySelector('span:last-child');
+                if (step === stepNum) {
+                    tab.className = 'video-step-tab bg-[#0471fc]/20 border border-[#0471fc] p-2.5 rounded-xl text-left transition cursor-pointer';
+                    titleSpan.className = 'font-bold text-[#0471fc] block mb-0.5';
+                    descSpan.className = 'text-gray-200 text-[11px]';
+                } else {
+                    tab.className = 'video-step-tab bg-white/5 border border-white/10 hover:bg-white/10 p-2.5 rounded-xl text-left transition cursor-pointer';
+                    titleSpan.className = 'font-bold text-gray-400 block mb-0.5';
+                    descSpan.className = 'text-gray-400 text-[11px]';
+                }
+            });
+
+            if (banner) {
+                banner.innerText = `▶ Memutar Simulasi: Langkah ${stepNum} dari 3`;
+            }
+        }
+    </script>
+</body>
+</html>
