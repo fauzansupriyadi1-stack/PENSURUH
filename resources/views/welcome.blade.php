@@ -50,12 +50,30 @@
 
                 <!-- Auth Buttons (Kanan) -->
                 <div class="flex items-center gap-1 sm:gap-2 md:gap-3 flex-shrink-0">
-                    <button onclick="openModal('loginModal')" class="bg-[#0471fc] hover:bg-[#0060db] text-white font-bold text-[11px] sm:text-[13px] md:text-[14px] px-2.5 sm:px-5 py-1 sm:py-1.5 md:py-2 rounded-full transition-all shadow-sm active:scale-95 cursor-pointer">
-                        Login
-                    </button>
-                    <button onclick="openModal('registerModal')" class="text-[#0471fc] font-bold text-[11px] sm:text-[13px] md:text-[14px] px-1 sm:px-2 py-1 hover:underline transition-all cursor-pointer">
-                        Register
-                    </button>
+                    @auth
+                        <div class="flex items-center gap-2">
+                            <a href="/dashboard" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                                @if(auth()->user()->avatar)
+                                    <img src="{{ auth()->user()->avatar }}" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#0471fc]/30 object-cover" alt="{{ auth()->user()->name }}">
+                                @endif
+                                <span class="text-xs sm:text-sm font-bold text-gray-800 hidden sm:inline max-w-[120px] truncate">{{ auth()->user()->name }}</span>
+                            </a>
+                            <a href="/dashboard" class="bg-[#0471fc] hover:bg-[#0060db] text-white font-bold text-[11px] sm:text-[13px] px-3 py-1 sm:py-1.5 rounded-full transition-all shadow-xs cursor-pointer">
+                                Dashboard
+                            </a>
+                            <form action="/logout" method="POST" class="inline m-0">
+                                @csrf
+                                <button type="submit" class="text-[11px] sm:text-xs font-semibold text-gray-400 hover:text-red-500 px-1.5 py-1 transition-colors cursor-pointer" title="Keluar">Keluar</button>
+                            </form>
+                        </div>
+                    @else
+                        <a href="/login" class="bg-[#0471fc] hover:bg-[#0060db] text-white font-bold text-[11px] sm:text-[13px] md:text-[14px] px-2.5 sm:px-5 py-1 sm:py-1.5 md:py-2 rounded-full transition-all shadow-sm active:scale-95 cursor-pointer">
+                            Login
+                        </a>
+                        <a href="/register" class="text-[#0471fc] font-bold text-[11px] sm:text-[13px] md:text-[14px] px-1 sm:px-2 py-1 hover:underline transition-all cursor-pointer">
+                            Register
+                        </a>
+                    @endauth
                     <!-- Hamburger Menu Button untuk mobile -->
                     <button id="mobileMenuBtn" class="md:hidden w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-[#0471fc] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer" aria-label="Menu">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
@@ -1038,6 +1056,12 @@
                 banner.innerText = `▶ Memutar Simulasi: Langkah ${stepNum} dari 3`;
             }
         }
+
+        @if(session('success'))
+            document.addEventListener('DOMContentLoaded', () => {
+                showToast('Sukses', '{{ session('success') }}', true);
+            });
+        @endif
     </script>
 </body>
 </html>
