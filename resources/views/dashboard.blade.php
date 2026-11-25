@@ -69,12 +69,14 @@
       </div>
 
       <div class="header-right">
-        <!-- Desktop Role Switcher -->
+        @if($user && $user->role === 'admin')
+        <!-- Admin Role Switcher -->
         <div class="mode-switcher desktop-only-mode" role="group" aria-label="Pilih mode role">
           <a href="{{ route('dashboard.switch-role', 'penyuruh') }}" class="mode-link {{ $activeRole === 'penyuruh' ? 'active' : '' }}" data-role="penyuruh">Penyuruh</a>
           <a href="{{ route('dashboard.switch-role', 'disuruh') }}" class="mode-link {{ $activeRole === 'disuruh' ? 'active' : '' }}" data-role="disuruh">Mitra</a>
           <a href="{{ route('dashboard.switch-role', 'admin') }}" class="mode-link {{ $activeRole === 'admin' ? 'active' : '' }}" data-role="admin">Admin</a>
         </div>
+        @endif
 
         <a href="/" class="btn-header-link" title="Kembali ke Landing Page">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -104,11 +106,13 @@
           </a>
         </nav>
 
+        @if($user && $user->role === 'admin')
         <div class="mode-switcher" role="group" aria-label="Pilih mode role mobile">
           <a href="{{ route('dashboard.switch-role', 'penyuruh') }}" class="mode-link {{ $activeRole === 'penyuruh' ? 'active' : '' }}" data-role="penyuruh">Penyuruh</a>
           <a href="{{ route('dashboard.switch-role', 'disuruh') }}" class="mode-link {{ $activeRole === 'disuruh' ? 'active' : '' }}" data-role="disuruh">Mitra</a>
           <a href="{{ route('dashboard.switch-role', 'admin') }}" class="mode-link {{ $activeRole === 'admin' ? 'active' : '' }}" data-role="admin">Admin</a>
         </div>
+        @endif
       </div>
     </div>
   </header>

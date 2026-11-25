@@ -228,14 +228,23 @@
                 <p class="text-gray-400 text-sm mb-6">Daftar gratis dan langsung cari pesuruh.</p>
 
                 <!-- Role Switcher -->
-                <div class="flex bg-gray-100 p-1 rounded-full mb-5 text-xs font-bold">
-                    <button id="roleCustomerBtn" type="button" onclick="setRole('customer')" class="flex-1 py-2 rounded-full bg-[#0471fc] text-white transition-all cursor-pointer">Pengguna Jasa</button>
-                    <button id="roleMitraBtn" type="button" onclick="setRole('mitra')" class="flex-1 py-2 rounded-full text-gray-500 transition-all cursor-pointer">Mitra Pesuruh</button>
+                <div class="mb-5">
+                    <label class="block text-xs font-bold text-gray-600 mb-1.5">Daftar Sebagai</label>
+                    <div class="flex bg-gray-100 p-1 rounded-full text-xs font-bold border border-gray-200">
+                        <button id="roleCustomerBtn" type="button" onclick="setRole('customer')" class="flex-1 py-2.5 rounded-full bg-[#0471fc] text-white shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                            <span>Penyuruh</span>
+                            <span class="text-[10px] opacity-80 font-normal">(Pemberi Tugas)</span>
+                        </button>
+                        <button id="roleMitraBtn" type="button" onclick="setRole('mitra')" class="flex-1 py-2.5 rounded-full text-gray-500 transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                            <span>Mitra</span>
+                            <span class="text-[10px] opacity-80 font-normal">(Yang Disuruh)</span>
+                        </button>
+                    </div>
                 </div>
 
                 <form method="POST" action="/register" class="flex flex-col gap-3.5" id="registerForm">
                     @csrf
-                    <input type="hidden" name="role" id="roleInput" value="penyuruh">
+                    <input type="hidden" name="role" id="roleInput" value="{{ old('role', 'penyuruh') }}">
                     <!-- Full Name + Username row -->
                     <div class="grid grid-cols-2 gap-3">
                         <div>
@@ -371,13 +380,13 @@
             const mitraSkills = document.getElementById('mitraSkillsReg');
 
             if (role === 'customer') {
-                customerBtn.className = 'flex-1 py-2 rounded-full bg-[#0471fc] text-white transition-all cursor-pointer';
-                mitraBtn.className = 'flex-1 py-2 rounded-full text-gray-500 transition-all cursor-pointer';
-                mitraSkills.classList.add('hidden');
+                customerBtn.className = 'flex-1 py-2.5 rounded-full bg-[#0471fc] text-white shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5';
+                mitraBtn.className = 'flex-1 py-2.5 rounded-full text-gray-500 transition-all cursor-pointer flex items-center justify-center gap-1.5';
+                if (mitraSkills) mitraSkills.classList.add('hidden');
             } else {
-                mitraBtn.className = 'flex-1 py-2 rounded-full bg-[#0471fc] text-white transition-all cursor-pointer';
-                customerBtn.className = 'flex-1 py-2 rounded-full text-gray-500 transition-all cursor-pointer';
-                mitraSkills.classList.remove('hidden');
+                mitraBtn.className = 'flex-1 py-2.5 rounded-full bg-[#0471fc] text-white shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5';
+                customerBtn.className = 'flex-1 py-2.5 rounded-full text-gray-500 transition-all cursor-pointer flex items-center justify-center gap-1.5';
+                if (mitraSkills) mitraSkills.classList.remove('hidden');
             }
         }
 

@@ -16,8 +16,12 @@ class DashboardController extends Controller
             return redirect()->route('login');
         }
 
-        // Support override role via query parameter untuk kemudahan pengujian (?role=penyuruh / ?role=disuruh / ?role=admin)
-        $activeRole = $request->query('role', $user->role ?? 'penyuruh');
+        // Jika bukan admin, pastikan role yang aktif sesuai role akun yang login
+        if ($user->role === 'admin') {
+            $activeRole = $request->query('role', 'admin');
+        } else {
+            $activeRole = $user->role ?? 'penyuruh';
+        }
 
         // 1. Data untuk Role PENYURUH (Hanya melihat order miliknya sendiri: apakah belum/sudah ada yang ambil)
         $myOrders = Order::with('disuruh')
