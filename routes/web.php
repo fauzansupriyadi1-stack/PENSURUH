@@ -6,7 +6,24 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('home');
+
+// Slug Navigation Routes (Landing Page Sections)
+Route::get('/about', function () {
+    return view('welcome', ['slug' => 'about']);
+})->name('about');
+
+Route::get('/review', function () {
+    return view('welcome', ['slug' => 'review']);
+})->name('review');
+
+Route::get('/pricing', function () {
+    return view('welcome', ['slug' => 'pricing']);
+})->name('pricing');
+
+Route::get('/contact', function () {
+    return view('welcome', ['slug' => 'contact']);
+})->name('contact');
 
 Route::get('/login', function () {
     if (\Illuminate\Support\Facades\Auth::check()) {
@@ -22,13 +39,15 @@ Route::get('/register', function () {
     return view('auth.login');
 })->name('register');
 
-// Dashboard & Role Management
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/dashboard/switch-role/{role}', [DashboardController::class, 'switchRole'])->name('dashboard.switch-role');
-Route::post('/orders', [DashboardController::class, 'createOrder'])->name('orders.create');
-Route::post('/orders/{id}/take', [DashboardController::class, 'takeOrder'])->name('orders.take');
-Route::post('/orders/{id}/complete', [DashboardController::class, 'completeOrder'])->name('orders.complete');
-Route::post('/dashboard/users/{id}/role', [DashboardController::class, 'updateUserRole'])->name('users.update-role');
+// Dashboard & Role Management (Hanya untuk pengguna yang sudah login)
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/switch-role/{role}', [DashboardController::class, 'switchRole'])->name('dashboard.switch-role');
+    Route::post('/orders', [DashboardController::class, 'createOrder'])->name('orders.create');
+    Route::post('/orders/{slug}/take', [DashboardController::class, 'takeOrder'])->name('orders.take');
+    Route::post('/orders/{slug}/complete', [DashboardController::class, 'completeOrder'])->name('orders.complete');
+    Route::post('/dashboard/users/{slug}/role', [DashboardController::class, 'updateUserRole'])->name('users.update-role');
+});
 
 // Google OAuth
 Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle'])->name('auth.google');

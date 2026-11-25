@@ -11,8 +11,10 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil user saat ini atau user pertama sebagai demo jika belum login
-        $user = Auth::user() ?? User::where('role', 'penyuruh')->first() ?? User::first();
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
 
         // Support override role via query parameter untuk kemudahan pengujian (?role=penyuruh / ?role=disuruh / ?role=admin)
         $activeRole = $request->query('role', $user->role ?? 'penyuruh');
@@ -82,7 +84,10 @@ class DashboardController extends Controller
      */
     public function createOrder(Request $request)
     {
-        $user = Auth::user() ?? User::first();
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
 
         $request->validate([
             'title'        => 'required|string|max:255',
@@ -105,12 +110,22 @@ class DashboardController extends Controller
     }
 
     /**
-     * Mitra (Disuruh) mengambil order terbuka.
+     * Mitra (Disuruh) mengambil order terbuka menggunakan slug.
      */
-    public function takeOrder($id)
+    public function takeOrder($slug)
     {
-        $user = Auth::user() ?? User::where('role', 'disuruh')->first() ?? User::first();
-        $order = Order::findOrFail($id);
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $order = Order::where('slug', $slug)->orWhere('id', $slug)->first();
+        if (!$order && preg_match('/-(\d+)$/', $slug, $m)) {
+            $order = Order::find($m[1]);
+        }
+        if (!$order) {
+            return redirect()->back()->with('error', 'Order tidak ditemukan.');
+        }
 
         if ($order->status !== 'menunggu') {
             return redirect()->back()->with('error', 'Order ini sudah diambil oleh mitra lain.');
@@ -126,11 +141,18 @@ class DashboardController extends Controller
     }
 
     /**
-     * Selesaikan order.
+     * Selesaikan order menggunakan slug.
      */
-    public function completeOrder($id)
+    public function completeOrder($slug)
     {
-        $order = Order::findOrFail($id);
+        $order = Order::where('slug', $slug)->orWhere('id', $slug)->first();
+        if (!$order && preg_match('/-(\d+)$/', $slug, $m)) {
+            $order = Order::find($m[1]);
+        }
+        if (!$order) {
+            return redirect()->back()->with('error', 'Order tidak ditemukan.');
+        }
+
         $order->update([
             'status'       => 'selesai',
             'completed_at' => now(),
@@ -145,7 +167,7 @@ class DashboardController extends Controller
     public function switchRole($role)
     {
         if (in_array($role, ['penyuruh', 'disuruh', 'admin'])) {
-            $user = Auth::user() ?? User::first();
+            $user = Auth::user();
             if ($user) {
                 $user->update(['role' => $role]);
             }
@@ -154,11 +176,18 @@ class DashboardController extends Controller
     }
 
     /**
-     * Admin mengubah role akun pengguna.
+     * Admin mengubah role akun pengguna menggunakan slug.
      */
-    public function updateUserRole(Request $request, $id)
+    public function updateUserRole(Request $request, $slug)
     {
-        $targetUser = User::findOrFail($id);
+        $targetUser = User::where('slug', $slug)->orWhere('id', $slug)->first();
+        if (!$targetUser && preg_match('/-(\d+)$/', $slug, $m)) {
+            $targetUser = User::find($m[1]);
+        }
+        if (!$targetUser) {
+            return redirect()->back()->with('error', 'Pengguna tidak ditemukan.');
+        }
+
         $request->validate(['role' => 'required|in:penyuruh,disuruh,admin']);
         $targetUser->update(['role' => $request->role]);
 

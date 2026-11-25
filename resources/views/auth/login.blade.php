@@ -1,3 +1,6 @@
+@php
+    $isRegister = request()->is('register') || request()->routeIs('register') || request()->query('tab') === 'register';
+@endphp
 <!DOCTYPE html>
 <html lang="id" class="scroll-smooth">
 <head>
@@ -106,10 +109,10 @@
 
             <!-- Tab Switcher: Masuk / Daftar -->
             <div class="flex gap-6 border-b border-gray-100 mb-7">
-                <button id="tabLoginBtn" onclick="switchTab('login')" class="pb-2.5 text-sm font-bold transition-all tab-active">
+                <button id="tabLoginBtn" onclick="switchTab('login')" class="pb-2.5 text-sm font-bold transition-all {{ $isRegister ? 'tab-inactive' : 'tab-active' }}">
                     Masuk
                 </button>
-                <button id="tabRegisterBtn" onclick="switchTab('register')" class="pb-2.5 text-sm font-bold transition-all tab-inactive">
+                <button id="tabRegisterBtn" onclick="switchTab('register')" class="pb-2.5 text-sm font-bold transition-all {{ $isRegister ? 'tab-active' : 'tab-inactive' }}">
                     Daftar Baru
                 </button>
             </div>
@@ -128,7 +131,7 @@
             @endif
 
             <!-- ---- LOGIN FORM ---- -->
-            <div id="loginFormPanel">
+            <div id="loginFormPanel" class="{{ $isRegister ? 'hidden' : '' }}">
                 <h1 class="text-[24px] sm:text-[28px] font-black text-gray-900 mb-1">Masuk</h1>
                 <p class="text-gray-400 text-sm mb-7">Lanjutkan ke akun PenSuruh kamu.</p>
 
@@ -216,7 +219,7 @@
             </div>
 
             <!-- ---- REGISTER FORM ---- -->
-            <div id="registerFormPanel" class="hidden">
+            <div id="registerFormPanel" class="{{ $isRegister ? '' : 'hidden' }}">
                 <h1 class="text-[24px] sm:text-[28px] font-black text-gray-900 mb-1">Buat Akun</h1>
                 <p class="text-gray-400 text-sm mb-6">Daftar gratis dan langsung cari pesuruh.</p>
 
@@ -413,6 +416,12 @@
                 window.location.href = '/dashboard';
             }, 600);
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.location.pathname.includes('/register') || window.location.hash === '#register' || new URLSearchParams(window.location.search).get('tab') === 'register') {
+                switchTab('register');
+            }
+        });
     </script>
 </body>
 </html>

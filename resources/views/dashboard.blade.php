@@ -306,7 +306,7 @@
 
                                         <!-- Action: Change Role -->
                                         <td class="py-3.5 px-3 text-right">
-                                            <form action="{{ route('users.update-role', $u->id) }}" method="POST" class="inline-flex items-center gap-1.5 m-0">
+                                            <form action="{{ route('users.update-role', $u->slug) }}" method="POST" class="inline-flex items-center gap-1.5 m-0">
                                                 @csrf
                                                 <select name="role" onchange="this.form.submit()" class="text-[11px] font-bold rounded-lg border border-gray-200 bg-white px-2 py-1 text-gray-700 focus:outline-none focus:border-[#0471fc] cursor-pointer shadow-xs">
                                                     <option value="penyuruh" {{ $u->role === 'penyuruh' ? 'selected' : '' }}>Penyuruh</option>
@@ -682,7 +682,7 @@
                                             </div>
                                         </div>
 
-                                        <form action="{{ route('orders.take', $order->id) }}" method="POST" class="m-0">
+                                        <form action="{{ route('orders.take', $order->slug) }}" method="POST" class="m-0">
                                             @csrf
                                             <button type="submit" class="w-full bg-[#0471fc] hover:bg-[#0060db] text-white font-bold text-xs py-2.5 rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer">
                                                 Ambil Order Ini →
@@ -719,7 +719,7 @@
                                             <span class="text-xs font-bold text-gray-900">Rp {{ number_format($order->price, 0, ',', '.') }}</span>
                                         </div>
 
-                                        <form action="{{ route('orders.complete', $order->id) }}" method="POST" class="m-0 pt-2 border-t border-blue-100">
+                                        <form action="{{ route('orders.complete', $order->slug) }}" method="POST" class="m-0 pt-2 border-t border-blue-100">
                                             @csrf
                                             <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 rounded-xl transition-all cursor-pointer">
                                                 Tandai Tugas Selesai ✓
@@ -786,7 +786,7 @@
                                         </td>
                                         <td class="py-3 px-3">
                                             @if($order->status === 'diambil')
-                                                <form action="{{ route('orders.complete', $order->id) }}" method="POST" class="inline m-0">
+                                                <form action="{{ route('orders.complete', $order->slug) }}" method="POST" class="inline m-0">
                                                     @csrf
                                                     <button type="submit" class="text-[11px] font-bold text-emerald-600 hover:underline cursor-pointer">Selesaikan</button>
                                                 </form>

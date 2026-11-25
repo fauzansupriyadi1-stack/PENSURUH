@@ -23,10 +23,22 @@ class User extends Authenticatable
         'email',
         'role',
         'phone',
+        'slug',
         'password',
         'google_id',
         'avatar',
     ];
+
+    /**
+     * Dapatkan slug user untuk URL friendly.
+     */
+    public function getSlugAttribute()
+    {
+        if (!empty($this->attributes['slug'])) {
+            return $this->attributes['slug'];
+        }
+        return \Illuminate\Support\Str::slug($this->name ?? 'user') . '-' . $this->id;
+    }
 
     /**
      * The attributes that should be hidden for serialization.

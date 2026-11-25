@@ -42,10 +42,10 @@
 
                 <!-- Navigation Links (Tengah - Desktop & Tablet) -->
                 <nav class="hidden md:flex items-center gap-6 lg:gap-8">
-                    <a href="#about" class="text-[#0471fc] font-bold text-[14px] lg:text-[15px] hover:opacity-75 transition-opacity">About Web</a>
-                    <a href="#review" onclick="openModal('reviewModal'); return false;" class="text-[#0471fc] font-bold text-[14px] lg:text-[15px] hover:opacity-75 transition-opacity">Review</a>
-                    <a href="#pricing" class="text-[#0471fc] font-bold text-[14px] lg:text-[15px] hover:opacity-75 transition-opacity">Pricing</a>
-                    <a href="#contact" class="text-[#0471fc] font-bold text-[14px] lg:text-[15px] hover:opacity-75 transition-opacity">Contact</a>
+                    <a href="/about" onclick="navigateToSlug(event, 'about')" class="text-[#0471fc] font-bold text-[14px] lg:text-[15px] hover:opacity-75 transition-opacity">About Web</a>
+                    <a href="/review" onclick="navigateToSlug(event, 'review')" class="text-[#0471fc] font-bold text-[14px] lg:text-[15px] hover:opacity-75 transition-opacity">Review</a>
+                    <a href="/pricing" onclick="navigateToSlug(event, 'pricing')" class="text-[#0471fc] font-bold text-[14px] lg:text-[15px] hover:opacity-75 transition-opacity">Pricing</a>
+                    <a href="/contact" onclick="navigateToSlug(event, 'contact')" class="text-[#0471fc] font-bold text-[14px] lg:text-[15px] hover:opacity-75 transition-opacity">Contact</a>
                 </nav>
 
                 <!-- Auth Buttons (Kanan) -->
@@ -85,10 +85,10 @@
                 <!-- Mobile Menu Dropdown Card (Floating Absolute di layer atas - Foto hero tidak bergerak / tidak turun sama sekali) -->
                 <div id="mobileMenu" class="hidden absolute top-[calc(100%+8px)] inset-x-0 bg-white/95 backdrop-blur-md rounded-[14px] sm:rounded-[16px] shadow-2xl md:hidden border border-gray-100 overflow-hidden pointer-events-auto transition-all z-50">
                     <nav class="flex flex-col items-center gap-3 py-4 text-center">
-                        <a href="#about" class="text-[#0471fc] font-bold text-[15px] hover:opacity-75 py-1">About Web</a>
-                        <a href="#review" onclick="openModal('reviewModal'); return false;" class="text-[#0471fc] font-bold text-[15px] hover:opacity-75 py-1">Review</a>
-                        <a href="#pricing" class="text-[#0471fc] font-bold text-[15px] hover:opacity-75 py-1">Pricing</a>
-                        <a href="#contact" class="text-[#0471fc] font-bold text-[15px] hover:opacity-75 py-1">Contact</a>
+                        <a href="/about" onclick="navigateToSlug(event, 'about')" class="text-[#0471fc] font-bold text-[15px] hover:opacity-75 py-1">About Web</a>
+                        <a href="/review" onclick="navigateToSlug(event, 'review')" class="text-[#0471fc] font-bold text-[15px] hover:opacity-75 py-1">Review</a>
+                        <a href="/pricing" onclick="navigateToSlug(event, 'pricing')" class="text-[#0471fc] font-bold text-[15px] hover:opacity-75 py-1">Pricing</a>
+                        <a href="/contact" onclick="navigateToSlug(event, 'contact')" class="text-[#0471fc] font-bold text-[15px] hover:opacity-75 py-1">Contact</a>
                     </nav>
                 </div>
             </div>
@@ -108,14 +108,14 @@
                 <!-- Bottom Row: "Daftar Sekarang" (kiri) & "VIDIO PANDUAN ORDER" (kanan) -->
                 <div class="relative z-10 flex flex-row items-end justify-between p-3.5 sm:p-5 md:p-6 gap-2">
                     <!-- Tombol Daftar Sekarang -->
-                    <button onclick="openModal('registerModal')" class="group bg-[#0471fc] hover:bg-[#0060db] text-white font-bold text-[12px] sm:text-[14px] md:text-[15px] pl-4 sm:pl-6 pr-1.5 sm:pr-2.5 py-1.5 sm:py-2 rounded-full shadow-lg flex items-center gap-2 sm:gap-3 transition-all transform active:scale-95 cursor-pointer">
+                    <a href="/register" class="group bg-[#0471fc] hover:bg-[#0060db] text-white font-bold text-[12px] sm:text-[14px] md:text-[15px] pl-4 sm:pl-6 pr-1.5 sm:pr-2.5 py-1.5 sm:py-2 rounded-full shadow-lg flex items-center gap-2 sm:gap-3 transition-all transform active:scale-95 cursor-pointer inline-flex">
                         <span class="tracking-wide whitespace-nowrap">Daftar Sekarang</span>
                         <span class="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full bg-white flex items-center justify-center text-[#0471fc] shadow-sm group-hover:scale-105 transition-transform flex-shrink-0">
                             <svg class="w-3 sm:w-3.5 h-3 sm:h-3.5 text-[#0471fc]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                         </span>
-                    </button>
+                    </a>
 
                     <!-- VIDIO PANDUAN ORDER Glass Card -->
                     <div onclick="openModal('videoModal')" class="glass-effect rounded-[14px] sm:rounded-[18px] p-1.5 sm:p-2.5 md:p-3 shadow-xl flex items-center gap-2 sm:gap-3.5 md:gap-4 cursor-pointer hover:bg-white/30 transition-all active:scale-98 group flex-shrink-0">
@@ -398,9 +398,9 @@
 
                     <!-- Bottom Booking Banner: "BOOKING SURUH ->" (Tinggi sejajar badge 100%) -->
                     <div class="pt-5 md:pt-3 w-full flex justify-center md:justify-start">
-                        <button onclick="openModal('bookingModal')" class="w-full max-w-[280px] sm:max-w-[310px] md:max-w-none h-[64px] sm:h-[72px] rounded-[14px] sm:rounded-[16px] px-6 cloud-booking-btn bg-[#c1e8fc] hover:brightness-105 active:scale-[0.99] text-black font-black text-base sm:text-lg md:text-xl tracking-wider uppercase text-center shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-sky-200/60" style="background-image: url('/images/sources/cloud_sky_texture.png'); background-size: cover; background-position: center;">
+                        <a href="{{ auth()->check() ? '/dashboard' : '/login' }}" class="w-full max-w-[280px] sm:max-w-[310px] md:max-w-none h-[64px] sm:h-[72px] rounded-[14px] sm:rounded-[16px] px-6 cloud-booking-btn bg-[#c1e8fc] hover:brightness-105 active:scale-[0.99] text-black font-black text-base sm:text-lg md:text-xl tracking-wider uppercase text-center shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-sky-200/60" style="background-image: url('/images/sources/cloud_sky_texture.png'); background-size: cover; background-position: center;">
                             <span>BOOKING SURUH -&gt;</span>
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -649,52 +649,90 @@
         </div>
     </div>
 
-    <!-- 4. VIDEO GUIDE MODAL (INTERAKTIF DENGAN SIMULATOR PEMUTAR & LANGKAH PANDUAN) -->
-    <div id="videoModal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="bg-[#111827] text-white rounded-[22px] max-w-2xl w-full p-4 md:p-6 shadow-2xl relative border border-gray-800">
-            <button onclick="closeModal('videoModal')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white text-white hover:text-black font-bold flex items-center justify-center transition cursor-pointer">
+    <!-- 4. VIDEO GUIDE MODAL (DESAIN BARU SESUAI REFERENSI: LIGHT THEME, YELLOW PLAY BTN, CLEAN STEP CARDS) -->
+    <div id="videoModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-[26px] sm:rounded-[32px] max-w-xl w-full p-5 sm:p-7 shadow-2xl relative border border-gray-100 flex flex-col gap-4 sm:gap-5">
+            <!-- Close Button Top Right -->
+            <button onclick="closeModal('videoModal')" class="absolute top-4 sm:top-5 right-4 sm:right-5 w-8 h-8 rounded-full bg-blue-50/80 hover:bg-blue-100 text-[#0471fc] flex items-center justify-center transition cursor-pointer font-bold text-sm shadow-xs" title="Tutup">
                 ✕
             </button>
-            <div class="mb-3">
-                <span class="text-[11px] font-bold text-[#0471fc] tracking-wider uppercase">Panduan Interaktif</span>
-                <h4 class="text-lg md:text-xl font-bold text-white">Cara Praktis Memesan di PenSuruh</h4>
+
+            <!-- Header -->
+            <div class="pr-8">
+                <span class="text-[10px] sm:text-[11px] font-black text-[#0471fc] tracking-wider uppercase block mb-0.5">Panduan Interaktif</span>
+                <h3 class="text-lg sm:text-[22px] font-black text-gray-900 tracking-tight leading-snug">Cara Praktis Memesan di PenSuruh</h3>
+                <p class="text-xs text-gray-500 mt-1">Ikuti 3 langkah mudah, dari memilih tugas sampai pembayaran.</p>
             </div>
 
-            <!-- Video Player Simulator -->
-            <div class="aspect-video w-full rounded-2xl overflow-hidden bg-black relative flex items-center justify-center border border-gray-800 group">
+            <!-- Video Player Simulator / Preview -->
+            <div class="aspect-video w-full rounded-[18px] sm:rounded-[22px] overflow-hidden bg-slate-900 relative flex items-center justify-center shadow-sm border border-gray-100 group">
                 <img 
                     id="videoGuideThumb"
                     src="/images/sources/hero_courier_clean.jpg" 
-                    alt="Video Guide Preview" 
-                    class="w-full h-full object-cover opacity-85 transition-opacity"
+                    alt="Panduan Interaktif PenSuruh" 
+                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
                 />
+
+                <!-- Dark gradient scrim at bottom so text stands out -->
+                <div class="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none"></div>
                 
-                <!-- Play/Pause Overlay Button -->
-                <button id="videoPlayBtn" onclick="toggleGuideVideoPlay()" class="absolute inset-0 m-auto w-14 h-14 md:w-16 md:h-16 rounded-full bg-[#0471fc]/90 hover:bg-[#0471fc] text-white flex items-center justify-center shadow-xl transition-all transform active:scale-90 cursor-pointer">
-                    <svg id="playIcon" class="w-6 h-6 md:w-7 md:h-7 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                    <svg id="pauseIcon" class="w-6 h-6 md:w-7 md:h-7 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                <!-- Play/Pause Overlay Button (Kuning PenSuruh seperti gambar referensi) -->
+                <button id="videoPlayBtn" onclick="toggleGuideVideoPlay()" class="absolute inset-0 m-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#f3c903] hover:bg-[#e0b800] text-gray-950 flex items-center justify-center shadow-xl transition-all transform hover:scale-105 active:scale-95 cursor-pointer" title="Putar Simulasi">
+                    <svg id="playIcon" class="w-6 h-6 sm:w-7 sm:h-7 fill-current translate-x-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <svg id="pauseIcon" class="w-6 h-6 sm:w-7 sm:h-7 fill-current hidden" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                 </button>
 
-                <!-- Status Banner -->
-                <div id="videoPlayingBanner" class="absolute bottom-3 left-3 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-medium hidden">
-                    ▶ Memutar Simulasi: Langkah 1 dari 3
+                <!-- Step Badge & Title inside Video at Bottom-Left -->
+                <div class="absolute bottom-3.5 left-4 flex flex-col items-start pointer-events-none z-10">
+                    <span id="videoStepBadge" class="bg-[#f3c903] text-gray-950 text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-xs mb-1">
+                        Langkah 1 dari 3
+                    </span>
+                    <span id="videoStepTitle" class="text-white font-black text-sm sm:text-base tracking-tight drop-shadow-sm">
+                        Pilih Tugas
+                    </span>
                 </div>
             </div>
 
-            <!-- Steps checklist below video -->
-            <div class="grid grid-cols-3 gap-2 mt-4 text-xs">
-                <button type="button" onclick="selectVideoStep(1)" id="stepTab1" class="video-step-tab bg-[#0471fc]/20 border border-[#0471fc] p-2.5 rounded-xl text-left transition cursor-pointer">
-                    <span class="font-bold text-[#0471fc] block mb-0.5">1. Pilih Tugas</span>
-                    <span class="text-gray-300 text-[11px]">Tentukan tugas dan detail lokasi.</span>
+            <!-- Steps checklist cards below video -->
+            <div class="grid grid-cols-3 gap-2 sm:gap-3">
+                <!-- Step 1: Active by default -->
+                <button type="button" onclick="selectVideoStep(1)" id="stepTab1" class="video-step-tab bg-[#f0f6ff] border-2 border-[#0471fc] rounded-2xl p-2.5 sm:p-3 text-left transition cursor-pointer shadow-xs">
+                    <span class="w-5 h-5 rounded-full bg-[#0471fc] text-white text-[10px] font-black flex items-center justify-center mb-1.5">1</span>
+                    <span class="font-bold text-gray-900 text-xs sm:text-[13px] block leading-tight">Pilih Tugas</span>
+                    <span class="text-gray-500 text-[10px] sm:text-[11px] leading-snug mt-1 block">Tentukan tugas dan detail lokasi.</span>
                 </button>
-                <button type="button" onclick="selectVideoStep(2)" id="stepTab2" class="video-step-tab bg-white/5 border border-white/10 hover:bg-white/10 p-2.5 rounded-xl text-left transition cursor-pointer">
-                    <span class="font-bold text-gray-400 block mb-0.5">2. Tawar Harga</span>
-                    <span class="text-gray-400 text-[11px]">Ajukan budget fleksibel di chat.</span>
+
+                <!-- Step 2 -->
+                <button type="button" onclick="selectVideoStep(2)" id="stepTab2" class="video-step-tab bg-gray-50 hover:bg-gray-100/70 border border-gray-200/70 rounded-2xl p-2.5 sm:p-3 text-left transition cursor-pointer">
+                    <span class="w-5 h-5 rounded-full bg-gray-200 text-gray-600 text-[10px] font-black flex items-center justify-center mb-1.5">2</span>
+                    <span class="font-bold text-gray-900 text-xs sm:text-[13px] block leading-tight">Tawar Harga</span>
+                    <span class="text-gray-400 text-[10px] sm:text-[11px] leading-snug mt-1 block">Ajukan budget fleksibel di chat.</span>
                 </button>
-                <button type="button" onclick="selectVideoStep(3)" id="stepTab3" class="video-step-tab bg-white/5 border border-white/10 hover:bg-white/10 p-2.5 rounded-xl text-left transition cursor-pointer">
-                    <span class="font-bold text-gray-400 block mb-0.5">3. Beres &amp; Bayar</span>
-                    <span class="text-gray-400 text-[11px]">Garansi 100% uang kembali.</span>
+
+                <!-- Step 3 -->
+                <button type="button" onclick="selectVideoStep(3)" id="stepTab3" class="video-step-tab bg-gray-50 hover:bg-gray-100/70 border border-gray-200/70 rounded-2xl p-2.5 sm:p-3 text-left transition cursor-pointer">
+                    <span class="w-5 h-5 rounded-full bg-gray-200 text-gray-600 text-[10px] font-black flex items-center justify-center mb-1.5">3</span>
+                    <span class="font-bold text-gray-900 text-xs sm:text-[13px] block leading-tight">Beres &amp; Bayar</span>
+                    <span class="text-gray-400 text-[10px] sm:text-[11px] leading-snug mt-1 block">Garansi 100% uang kembali.</span>
                 </button>
+            </div>
+
+            <!-- Footer: Jangan tampilkan lagi (Kiri) & Lewati / Mulai Pesan (Kanan) -->
+            <div class="flex items-center justify-between pt-1 border-t border-gray-100/80">
+                <label class="flex items-center gap-2 cursor-pointer select-none text-[11px] sm:text-xs text-gray-500 font-medium">
+                    <input type="checkbox" id="dontShowGuideAgain" onchange="toggleRememberGuide(this)" class="w-3.5 h-3.5 rounded border-gray-300 accent-[#0471fc] text-[#0471fc] cursor-pointer">
+                    <span>Jangan tampilkan lagi</span>
+                </label>
+
+                <div class="flex items-center gap-3">
+                    <button onclick="closeModal('videoModal')" class="text-xs font-bold text-[#0471fc] hover:underline cursor-pointer">
+                        Lewati
+                    </button>
+                    <button onclick="closeModal('videoModal'); navigateToSlug(null, 'pricing');" class="bg-[#f3c903] hover:bg-[#e0b800] text-gray-950 font-black text-xs px-4 sm:px-5 py-2.5 rounded-full shadow-xs transition-all transform active:scale-95 flex items-center gap-1.5 cursor-pointer">
+                        <span>Mulai Pesan</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -709,11 +747,11 @@
             <h3 class="text-xl font-bold text-black">Hubungi PenSuruh</h3>
             <p class="text-xs text-gray-500 mt-1 mb-5">Tim customer service kami siap membantu Anda 24/7</p>
             <div class="space-y-2.5">
-                <a href="https://wa.me/62812345696789?text=Halo%20PenSuruh%2C%20saya%20butuh%20bantuan%20tugas" target="_blank" class="w-full bg-[#25D366] hover:bg-[#1fb355] text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm shadow transition">
+                <a href="https://wa.me/+6285746035921" target="_blank" class="w-full bg-[#25D366] hover:bg-[#1fb355] text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm shadow transition">
                     Chat WhatsApp Resmi
                 </a>
-                <a href="tel:012345696789" class="w-full bg-[#0471fc] hover:bg-[#0060db] text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm shadow transition">
-                    Telepon (0123) 4569 6789
+                <a href="https://wa.me/+6285746035921" target="_blank" class="w-full bg-[#0471fc] hover:bg-[#0060db] text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm shadow transition">
+                    Telepon +62 857-4603-5921
                 </a>
             </div>
         </div>
@@ -760,6 +798,65 @@
 
     <!-- ==================== JAVASCRIPT LOGIC ==================== -->
     <script>
+        // Slug Navigation Router (Teknik URL Bersih Tanpa ID Hash '#')
+        function navigateToSlug(e, slug) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            
+            // Ubah address bar browser menjadi URL slug bersih tanpa tanda pagar '#'
+            if (window.location.pathname !== '/' + slug) {
+                history.pushState({ slug: slug }, '', '/' + slug);
+            }
+
+            // Tutup menu mobile jika sedang terbuka
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+
+            if (slug === 'review') {
+                openModal('reviewModal');
+                return;
+            }
+
+            if (slug === 'contact') {
+                const contactEl = document.getElementById('contact');
+                if (contactEl) {
+                    contactEl.scrollIntoView({ behavior: 'smooth' });
+                }
+                return;
+            }
+
+            const target = document.getElementById(slug);
+            if (target) {
+                const navbarOffset = 70;
+                const elementPosition = target.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - navbarOffset;
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        }
+
+        // Handle direct URL slug visit & popstate browser back/forward
+        document.addEventListener('DOMContentLoaded', () => {
+            const path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+            if (['about', 'pricing', 'contact', 'review'].includes(path)) {
+                setTimeout(() => {
+                    navigateToSlug(null, path);
+                }, 150);
+            }
+        });
+
+        window.addEventListener('popstate', () => {
+            const path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+            if (['about', 'pricing', 'contact', 'review'].includes(path)) {
+                navigateToSlug(null, path);
+            } else if (path === '') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+
         // Modal Handlers
         function openModal(id) {
             const modal = document.getElementById(id);
@@ -1018,44 +1115,65 @@
             isVideoPlaying = !isVideoPlaying;
             const playIcon = document.getElementById('playIcon');
             const pauseIcon = document.getElementById('pauseIcon');
-            const banner = document.getElementById('videoPlayingBanner');
 
-            if (isVideoPlaying) {
-                playIcon.classList.add('hidden');
-                pauseIcon.classList.remove('hidden');
-                banner.classList.remove('hidden');
-            } else {
-                playIcon.classList.remove('hidden');
-                pauseIcon.classList.add('hidden');
-                banner.classList.add('hidden');
+            if (playIcon && pauseIcon) {
+                if (isVideoPlaying) {
+                    playIcon.classList.add('hidden');
+                    pauseIcon.classList.remove('hidden');
+                } else {
+                    playIcon.classList.remove('hidden');
+                    pauseIcon.classList.add('hidden');
+                }
             }
         }
 
         function selectVideoStep(stepNum) {
-            const banner = document.getElementById('videoPlayingBanner');
-            const tab1 = document.getElementById('stepTab1');
-            const tab2 = document.getElementById('stepTab2');
-            const tab3 = document.getElementById('stepTab3');
+            const badge = document.getElementById('videoStepBadge');
+            const title = document.getElementById('videoStepTitle');
+            const steps = [
+                { name: 'Pilih Tugas', desc: 'Tentukan tugas dan detail lokasi.' },
+                { name: 'Tawar Harga', desc: 'Ajukan budget fleksibel di chat.' },
+                { name: 'Beres & Bayar', desc: 'Garansi 100% uang kembali.' }
+            ];
 
-            [tab1, tab2, tab3].forEach((tab, index) => {
-                const step = index + 1;
-                const titleSpan = tab.querySelector('span:first-child');
+            [1, 2, 3].forEach(num => {
+                const tab = document.getElementById(`stepTab${num}`);
+                if (!tab) return;
+                const badgeSpan = tab.querySelector('span:first-child');
+                const titleSpan = tab.querySelector('span:nth-child(2)');
                 const descSpan = tab.querySelector('span:last-child');
-                if (step === stepNum) {
-                    tab.className = 'video-step-tab bg-[#0471fc]/20 border border-[#0471fc] p-2.5 rounded-xl text-left transition cursor-pointer';
-                    titleSpan.className = 'font-bold text-[#0471fc] block mb-0.5';
-                    descSpan.className = 'text-gray-200 text-[11px]';
+
+                if (num === stepNum) {
+                    tab.className = 'video-step-tab bg-[#f0f6ff] border-2 border-[#0471fc] rounded-2xl p-2.5 sm:p-3 text-left transition cursor-pointer shadow-xs';
+                    if (badgeSpan) badgeSpan.className = 'w-5 h-5 rounded-full bg-[#0471fc] text-white text-[10px] font-black flex items-center justify-center mb-1.5';
+                    if (titleSpan) titleSpan.className = 'font-bold text-gray-900 text-xs sm:text-[13px] block leading-tight';
+                    if (descSpan) descSpan.className = 'text-gray-500 text-[10px] sm:text-[11px] leading-snug mt-1 block';
                 } else {
-                    tab.className = 'video-step-tab bg-white/5 border border-white/10 hover:bg-white/10 p-2.5 rounded-xl text-left transition cursor-pointer';
-                    titleSpan.className = 'font-bold text-gray-400 block mb-0.5';
-                    descSpan.className = 'text-gray-400 text-[11px]';
+                    tab.className = 'video-step-tab bg-gray-50 hover:bg-gray-100/70 border border-gray-200/70 rounded-2xl p-2.5 sm:p-3 text-left transition cursor-pointer';
+                    if (badgeSpan) badgeSpan.className = 'w-5 h-5 rounded-full bg-gray-200 text-gray-600 text-[10px] font-black flex items-center justify-center mb-1.5';
+                    if (titleSpan) titleSpan.className = 'font-bold text-gray-900 text-xs sm:text-[13px] block leading-tight';
+                    if (descSpan) descSpan.className = 'text-gray-400 text-[10px] sm:text-[11px] leading-snug mt-1 block';
                 }
             });
 
-            if (banner) {
-                banner.innerText = `▶ Memutar Simulasi: Langkah ${stepNum} dari 3`;
+            if (badge) badge.innerText = `Langkah ${stepNum} dari 3`;
+            if (title && steps[stepNum - 1]) title.innerText = steps[stepNum - 1].name;
+        }
+
+        function toggleRememberGuide(checkbox) {
+            if (checkbox.checked) {
+                localStorage.setItem('hideVideoGuide', 'true');
+            } else {
+                localStorage.removeItem('hideVideoGuide');
             }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const rememberCheckbox = document.getElementById('dontShowGuideAgain');
+            if (rememberCheckbox && localStorage.getItem('hideVideoGuide') === 'true') {
+                rememberCheckbox.checked = true;
+            }
+        });
 
         @if(session('success'))
             document.addEventListener('DOMContentLoaded', () => {

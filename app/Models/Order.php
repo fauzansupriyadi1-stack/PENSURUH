@@ -13,6 +13,7 @@ class Order extends Model
         'penyuruh_id',
         'disuruh_id',
         'title',
+        'slug',
         'service_type',
         'pickup_location',
         'destination_location',
@@ -22,6 +23,27 @@ class Order extends Model
         'taken_at',
         'completed_at',
     ];
+
+    /**
+     * Dapatkan slug order untuk teknik URL SEO-friendly.
+     */
+    public function getSlugAttribute()
+    {
+        if (!empty($this->attributes['slug'])) {
+            return $this->attributes['slug'];
+        }
+        return 'order-' . \Illuminate\Support\Str::slug($this->title ?? 'tugas') . '-' . $this->id;
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($order) {
+            if (empty($order->slug)) {
+                $order->slug = 'order-' . \Illuminate\Support\Str::slug($order->title ?? 'tugas') . '-' . substr(uniqid(), -6);
+            }
+        });
+    }
 
     /**
      * User yang menyuruh (Pemberi Tugas / Customer).
