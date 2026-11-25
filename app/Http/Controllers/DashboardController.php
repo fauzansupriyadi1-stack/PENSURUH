@@ -18,6 +18,13 @@ class DashboardController extends Controller
             return redirect()->route('login');
         }
 
+        if ($user->is_suspended) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('login')->with('error', 'Akun Anda telah ditangguhkan (suspend) oleh admin.');
+        }
+
         // Jika bukan admin, pastikan role yang aktif sesuai role akun yang login
         if ($user->role === 'admin') {
             $activeRole = $request->query('role', 'admin');
@@ -115,6 +122,7 @@ class DashboardController extends Controller
                 'email'             => $u->email ?? '-',
                 'phone'             => $u->phone ?? 'Belum ada No. HP',
                 'role'              => $u->role,
+                'is_suspended'      => (bool) $u->is_suspended,
                 'joined_at'         => $u->created_at ? $u->created_at->format('d M Y') : '-',
                 'estimated_balance' => $estimatedBalance,
                 'total_spent'       => (int) $spentCompleted,
@@ -160,6 +168,13 @@ class DashboardController extends Controller
         $user = Auth::user();
         if (!$user) {
             return redirect()->route('login');
+        }
+
+        if ($user->is_suspended) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('login')->with('error', 'Akun Anda telah ditangguhkan (suspend) oleh admin.');
         }
 
         $minPrices = [
@@ -276,6 +291,13 @@ class DashboardController extends Controller
             return redirect()->route('login');
         }
 
+        if ($user->is_suspended) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('login')->with('error', 'Akun Anda telah ditangguhkan (suspend) oleh admin.');
+        }
+
         $target = $this->findBySlugOrId(Order::class, (string) $slug);
         if (!$target) {
             return redirect()->back()->with('error', 'Order tidak ditemukan.');
@@ -358,6 +380,13 @@ class DashboardController extends Controller
             return redirect()->route('login');
         }
 
+        if ($user->is_suspended) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('login')->with('error', 'Akun Anda telah ditangguhkan (suspend) oleh admin.');
+        }
+
         $target = $this->findBySlugOrId(Order::class, (string) $slug);
         if (!$target) {
             return redirect()->back()->with('error', 'Order tidak ditemukan.');
@@ -424,5 +453,34 @@ class DashboardController extends Controller
         $targetUser->update(['role' => $request->role]);
 
         return redirect()->back()->with('success', "Peran untuk {$targetUser->name} berhasil diperbarui menjadi " . ucfirst($request->role) . ".");
+    }
+
+    /**
+     * Admin melakukan suspend atau mengaktifkan kembali akun pengguna.
+     */
+    public function toggleSuspendUser(Request $request, $slug)
+    {
+        $currentUser = Auth::user();
+        if (!$currentUser || $currentUser->role !== 'admin') {
+            return redirect()->back()->with('error', 'Akses ditolak. Hanya Admin yang dapat melakukan suspend akun.');
+        }
+
+        $targetUser = $this->findBySlugOrId(User::class, (string) $slug);
+        if (!$targetUser) {
+            return redirect()->back()->with('error', 'Pengguna tidak ditemukan.');
+        }
+
+        if ((int) $targetUser->id === (int) $currentUser->id) {
+            return redirect()->back()->with('error', 'Admin tidak dapat melakukan suspend pada akun sendiri.');
+        }
+
+        $newStatus = !$targetUser->is_suspended;
+        $targetUser->update([
+            'is_suspended' => $newStatus,
+            'suspended_at' => $newStatus ? now() : null,
+        ]);
+
+        $statusText = $newStatus ? 'ditangguhkan (suspend)' : 'diaktifkan kembali';
+        return redirect()->back()->with('success', "Akun {$targetUser->name} berhasil {$statusText}.");
     }
 }

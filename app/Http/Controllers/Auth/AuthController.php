@@ -41,6 +41,13 @@ class AuthController extends Controller
                 ->with('tab', 'login');
         }
 
+        if ($user->is_suspended) {
+            return back()
+                ->withInput($request->only('identifier', 'remember'))
+                ->with('error', 'Akun Anda telah ditangguhkan (suspend) oleh admin. Silakan hubungi tim support.')
+                ->with('tab', 'login');
+        }
+
         Auth::login($user, $remember);
         $request->session()->regenerate();
 

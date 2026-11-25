@@ -49,6 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/orders/{slug}/complete', [DashboardController::class, 'completeOrder'])->name('orders.complete');
     Route::post('/orders/{slug}/cancel', [DashboardController::class, 'cancelOrder'])->name('orders.cancel');
     Route::post('/dashboard/users/{slug}/role', [DashboardController::class, 'updateUserRole'])->name('users.update-role');
+    Route::post('/dashboard/users/{slug}/suspend', [DashboardController::class, 'toggleSuspendUser'])->name('users.toggle-suspend');
 });
 
 // Google OAuth

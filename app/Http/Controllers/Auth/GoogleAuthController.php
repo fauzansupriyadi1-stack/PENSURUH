@@ -44,6 +44,9 @@ class GoogleAuthController extends Controller
                 ->first();
 
             if ($user) {
+                if ($user->is_suspended) {
+                    return redirect('/login')->with('error', 'Akun Anda telah ditangguhkan (suspend) oleh admin. Silakan hubungi tim support.');
+                }
                 // Update google_id & avatar jika belum ada
                 $user->update([
                     'google_id' => $user->google_id ?: $googleUser->getId(),

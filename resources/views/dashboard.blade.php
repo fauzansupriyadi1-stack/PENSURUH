@@ -875,7 +875,7 @@
                   <th>Aktivitas Tugas</th>
                   <th>Status</th>
                   <th>Detail Data</th>
-                  <th>Kontrol Role</th>
+                  <th>Kontrol Role &amp; Akun</th>
                 </tr>
               </thead>
               <tbody>
@@ -910,19 +910,35 @@
                         <span style="color:var(--text-secondary);">Akses Penuh</span>
                       @endif
                     </td>
-                    <td><span class="status-dot">Aktif</span></td>
+                    <td>
+                      @if($u->is_suspended)
+                        <span class="status-dot" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-weight:700;">Ditangguhkan</span>
+                      @else
+                        <span class="status-dot">Aktif</span>
+                      @endif
+                    </td>
                     <td>
                       <button type="button" class="btn btn-outline" style="padding:5px 12px; font-size:0.75rem;" onclick="openAdminUserDetail({{ $u->id }})">Lihat Detail</button>
                     </td>
                     <td>
-                      <form action="{{ Route::has('users.update-role') ? route('users.update-role', $u->slug ?? $u->id) : url('/dashboard/users/' . ($u->slug ?? $u->id) . '/role') }}" method="POST" style="margin:0;">
-                        @csrf
-                        <select name="role" onchange="this.form.submit()" class="role-select" aria-label="Ubah role {{ $u->name }}">
-                          <option value="penyuruh" {{ $u->role === 'penyuruh' ? 'selected' : '' }}>Penyuruh</option>
-                          <option value="disuruh" {{ $u->role === 'disuruh' ? 'selected' : '' }}>Yang Disuruh</option>
-                          <option value="admin" {{ $u->role === 'admin' ? 'selected' : '' }}>Admin</option>
-                        </select>
-                      </form>
+                      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <form action="{{ Route::has('users.update-role') ? route('users.update-role', $u->slug ?? $u->id) : url('/dashboard/users/' . ($u->slug ?? $u->id) . '/role') }}" method="POST" style="margin:0;">
+                          @csrf
+                          <select name="role" onchange="this.form.submit()" class="role-select" aria-label="Ubah role {{ $u->name }}">
+                            <option value="penyuruh" {{ $u->role === 'penyuruh' ? 'selected' : '' }}>Penyuruh</option>
+                            <option value="disuruh" {{ $u->role === 'disuruh' ? 'selected' : '' }}>Yang Disuruh</option>
+                            <option value="admin" {{ $u->role === 'admin' ? 'selected' : '' }}>Admin</option>
+                          </select>
+                        </form>
+                        @if($u->id !== $user->id)
+                          <form action="{{ Route::has('users.toggle-suspend') ? route('users.toggle-suspend', $u->slug ?? $u->id) : url('/dashboard/users/' . ($u->slug ?? $u->id) . '/suspend') }}" method="POST" style="margin:0;" onsubmit="return confirm('{{ $u->is_suspended ? 'Aktifkan kembali akun ' . $u->name . '?' : 'Yakin ingin melakukan suspend pada akun ' . $u->name . '?' }}');">
+                            @csrf
+                            <button type="submit" class="{{ $u->is_suspended ? 'btn btn-primary' : 'btn-logout' }}" style="padding:4px 10px; font-size:0.75rem; {{ $u->is_suspended ? 'background:#059669; border-color:#059669;' : '' }}">
+                              {{ $u->is_suspended ? 'Aktifkan' : 'Suspend' }}
+                            </button>
+                          </form>
+                        @endif
+                      </div>
                     </td>
                   </tr>
                 @endforeach
@@ -1195,7 +1211,8 @@
       <ul class="task-list-compact" id="admin-detail-history-list" style="max-height:260px; overflow-y:auto; border:1px solid var(--border-light); border-radius:12px; padding:0 12px;">
       </ul>
 
-      <div style="margin-top:14px; text-align:right;">
+      <div style="margin-top:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div id="admin-detail-suspend-container"></div>
         <button type="button" class="btn btn-outline" onclick="closeAdminUserDetail()">Tutup</button>
       </div>
     </div>
@@ -1354,9 +1371,28 @@
       currentAdminModalUser = data;
 
       const roleLabel = data.role === 'disuruh' ? 'MITRA' : data.role.toUpperCase();
-      document.getElementById('admin-detail-name').textContent = data.name + ' (' + roleLabel + ')';
+      const isSuspended = !!data.is_suspended;
+      document.getElementById('admin-detail-name').textContent = data.name + ' (' + roleLabel + ')' + (isSuspended ? ' - DITANGGUHKAN' : '');
       document.getElementById('admin-detail-meta').textContent =
         'ID #' + data.id + ' · ' + data.email + ' · ' + data.phone + ' · Gabung ' + data.joined_at;
+
+      const suspendBox = document.getElementById('admin-detail-suspend-container');
+      if (suspendBox) {
+        if (Number(data.id) === Number({{ $user->id ?? 0 }})) {
+          suspendBox.innerHTML = '<span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Akun Anda Sendiri (Admin)</span>';
+        } else {
+          const actionUrl = '/dashboard/users/' + (data.slug || data.id) + '/suspend';
+          const confirmMsg = isSuspended ? 'Aktifkan kembali akun ' + data.name + '?' : 'Yakin ingin melakukan suspend pada akun ' + data.name + '?';
+          suspendBox.innerHTML = `
+            <form action="${actionUrl}" method="POST" style="margin:0;" onsubmit="return confirm('${confirmMsg}');">
+              <input type="hidden" name="_token" value="{{ csrf_token() }}">
+              <button type="submit" class="${isSuspended ? 'btn btn-primary' : 'btn-logout'}" style="padding:6px 14px; font-size:0.75rem; ${isSuspended ? 'background:#059669; border-color:#059669;' : ''}">
+                ${isSuspended ? '✓ Aktifkan Kembali Akun' : '⛔ Suspend Akun Ini'}
+              </button>
+            </form>
+          `;
+        }
+      }
 
       const isMitra = data.role === 'disuruh';
       document.getElementById('admin-detail-balance-label').textContent = isMitra ? 'Estimasi Saldo Mitra' : 'Estimasi Saldo Dompet';
