@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\User;
+use App\Models\WalletTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class DashboardController extends Controller
 {
@@ -20,8 +22,8 @@ class DashboardController extends Controller
 
         if ($user->is_suspended) {
             Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
             return redirect()->route('login')->with('error', 'Akun Anda telah ditangguhkan (suspend) oleh admin.');
         }
 
@@ -112,9 +114,7 @@ class DashboardController extends Controller
             }
 
             $allUserOrders = $created->merge($taken);
-            $estimatedBalance = $u->role === 'disuruh'
-                ? (875000 + $earnedCompleted)
-                : max(0, 1450000 - $spentCompleted);
+            $estimatedBalance = (float) ($u->balance ?? 0);
 
             $userDetailsMap[$u->id] = [
                 'id'                => $u->id,
@@ -146,6 +146,10 @@ class DashboardController extends Controller
             'total_turnover'  => $completedOrders->sum('price'),
         ];
 
+        $myWalletTransactions = WalletTransaction::where('user_id', $user->id)
+            ->latest()
+            ->get();
+
         return view('dashboard', compact(
             'user', 
             'activeRole', 
@@ -156,7 +160,8 @@ class DashboardController extends Controller
             'completedOrders',
             'allUsers',
             'userDetailsMap',
-            'adminStats'
+            'adminStats',
+            'myWalletTransactions'
         ));
     }
 
@@ -172,8 +177,8 @@ class DashboardController extends Controller
 
         if ($user->is_suspended) {
             Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
             return redirect()->route('login')->with('error', 'Akun Anda telah ditangguhkan (suspend) oleh admin.');
         }
 
@@ -244,12 +249,41 @@ class DashboardController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($orderData, $hasIdempotencyCol, $idempotencyKey) {
+            $txResult = DB::transaction(function () use ($orderData, $hasIdempotencyCol, $idempotencyKey, $user) {
                 if ($hasIdempotencyCol && $idempotencyKey !== '' && Order::where('idempotency_key', $idempotencyKey)->lockForUpdate()->exists()) {
-                    return;
+                    return ['status' => 'duplicate'];
                 }
-                Order::create($orderData);
+
+                $lockedUser = User::where('id', $user->id)->lockForUpdate()->first();
+                $price = (float) $orderData['price'];
+                if (!$lockedUser || (float) $lockedUser->balance < $price) {
+                    return [
+                        'status'  => 'insufficient',
+                        'balance' => (float) ($lockedUser->balance ?? 0),
+                        'price'   => $price,
+                    ];
+                }
+
+                $lockedUser->decrement('balance', $price);
+                $order = Order::create($orderData);
+
+                WalletTransaction::create([
+                    'user_id'        => $lockedUser->id,
+                    'type'           => 'ORDER_PAYMENT',
+                    'invoice_number' => 'ORD-' . $order->id . '-' . strtoupper(Str::random(4)),
+                    'amount'         => $price,
+                    'payment_method' => 'Dompet PenSuruh',
+                    'description'    => 'Pembayaran tugas: ' . ($order->title ?? $order->service_type),
+                    'status'         => 'SUCCESS',
+                    'paid_at'        => now(),
+                ]);
+
+                return ['status' => 'created'];
             });
+
+            if (($txResult['status'] ?? '') === 'insufficient') {
+                return redirect()->back()->with('error', 'Saldo dompet tidak mencukupi (Saldo: Rp ' . number_format($txResult['balance'], 0, ',', '.') . ', Biaya: Rp ' . number_format($txResult['price'], 0, ',', '.') . '). Silakan isi saldo via QRIS terlebih dahulu.');
+            }
         } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
             return redirect()->back()->with('success', 'Order suruh sudah tercatat sebelumnya (permintaan ganda dicegah).');
         }
@@ -293,8 +327,8 @@ class DashboardController extends Controller
 
         if ($user->is_suspended) {
             Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
             return redirect()->route('login')->with('error', 'Akun Anda telah ditangguhkan (suspend) oleh admin.');
         }
 
@@ -362,7 +396,24 @@ class DashboardController extends Controller
                 'completed_at' => now(),
             ]);
 
-            return ['type' => 'success', 'msg' => 'Tugas suruh telah diselesaikan.'];
+            if ($order->disuruh_id && (float) $order->price > 0) {
+                $mitra = User::where('id', $order->disuruh_id)->lockForUpdate()->first();
+                if ($mitra) {
+                    $mitra->increment('balance', (float) $order->price);
+                    WalletTransaction::create([
+                        'user_id'        => $mitra->id,
+                        'type'           => 'ORDER_EARNING',
+                        'invoice_number' => 'EARN-' . $order->id . '-' . strtoupper(Str::random(4)),
+                        'amount'         => (float) $order->price,
+                        'payment_method' => 'Dompet PenSuruh',
+                        'description'    => 'Upah tugas selesai: ' . ($order->title ?? $order->service_type),
+                        'status'         => 'SUCCESS',
+                        'paid_at'        => now(),
+                    ]);
+                }
+            }
+
+            return ['type' => 'success', 'msg' => 'Tugas suruh telah diselesaikan dan saldo telah diteruskan ke Mitra.'];
         });
 
         return redirect()->back()->with($result['type'], $result['msg']);
@@ -382,8 +433,8 @@ class DashboardController extends Controller
 
         if ($user->is_suspended) {
             Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
             return redirect()->route('login')->with('error', 'Akun Anda telah ditangguhkan (suspend) oleh admin.');
         }
 
@@ -419,7 +470,24 @@ class DashboardController extends Controller
                 'status' => 'dibatalkan',
             ]);
 
-            return ['type' => 'success', 'msg' => 'Pesanan berhasil dibatalkan.'];
+            if ($order->penyuruh_id && (float) $order->price > 0) {
+                $penyuruh = User::where('id', $order->penyuruh_id)->lockForUpdate()->first();
+                if ($penyuruh) {
+                    $penyuruh->increment('balance', (float) $order->price);
+                    WalletTransaction::create([
+                        'user_id'        => $penyuruh->id,
+                        'type'           => 'REFUND',
+                        'invoice_number' => 'RFD-' . $order->id . '-' . strtoupper(Str::random(4)),
+                        'amount'         => (float) $order->price,
+                        'payment_method' => 'Dompet PenSuruh',
+                        'description'    => 'Pengembalian dana pesanan dibatalkan: ' . ($order->title ?? $order->service_type),
+                        'status'         => 'SUCCESS',
+                        'paid_at'        => now(),
+                    ]);
+                }
+            }
+
+            return ['type' => 'success', 'msg' => 'Pesanan berhasil dibatalkan dan dana telah dikembalikan ke saldo Penyuruh.'];
         });
 
         return redirect()->back()->with($result['type'], $result['msg']);

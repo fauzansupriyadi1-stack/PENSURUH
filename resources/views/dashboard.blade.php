@@ -150,7 +150,7 @@
                 <span style="font-family:monospace; opacity:0.85;">PS-{{ str_pad($user->id ?? 1, 5, '0', STR_PAD_LEFT) }}</span>
               </div>
               <div class="gopay-balance-value">
-                <span class="wallet-balance-amount" id="penyuruh-saldo" data-value="Rp {{ number_format($user->balance ?? 500000, 0, ',', '.') }}">Rp {{ number_format($user->balance ?? 500000, 0, ',', '.') }}</span>
+                <span class="wallet-balance-amount" id="penyuruh-saldo" data-value="Rp {{ number_format($user->balance ?? 0, 0, ',', '.') }}">Rp {{ number_format($user->balance ?? 0, 0, ',', '.') }}</span>
                 <button type="button" class="eye-toggle" onclick="toggleBalance()" aria-label="Sembunyikan saldo">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
@@ -160,11 +160,11 @@
             <div class="gopay-mini-stats">
               <div class="gopay-mini-stat">
                 <small>Poin Suruh</small>
-                <strong class="yellow-highlight">★ 4.780</strong>
+                <strong class="yellow-highlight">★ {{ number_format($myOrders->where('status', 'selesai')->count() * 100, 0, ',', '.') }}</strong>
               </div>
               <div class="gopay-mini-stat">
                 <small>Voucher Aktif</small>
-                <strong id="penyuruh-voucher-count">8 Kupon</strong>
+                <strong id="penyuruh-voucher-count">2 Kupon</strong>
               </div>
             </div>
           </div>
@@ -550,27 +550,28 @@
 
           <div class="filter-tabs" data-filter-target="penyuruh-history-list">
             <button type="button" class="filter-tab active" onclick="setListStatusFilter(this, 'penyuruh-history-list', 'all')">Semua</button>
-            <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'penyuruh-history-list', 'selesai')">Selesai</button>
-            <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'penyuruh-history-list', 'dibatalkan')">Dibatalkan</button>
+            <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'penyuruh-history-list', 'credit')">Masuk (Top Up / Refund)</button>
+            <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'penyuruh-history-list', 'debit')">Keluar (Order)</button>
           </div>
 
           <ul class="transaction-list" id="penyuruh-history-list" data-active-status="all">
-            @forelse($myOrders->whereIn('status', ['selesai', 'dibatalkan']) as $ord)
-              <li class="transaction-item" data-status="{{ $ord->status }}" data-search="{{ strtolower(($ord->title ?? $ord->service_type) . ' ' . ($ord->disuruh->name ?? '')) }}">
-                <div class="transaction-icon {{ $ord->status === 'dibatalkan' ? 'send' : 'send' }}" aria-hidden="true">{{ $ord->status === 'dibatalkan' ? '✕' : '↑' }}</div>
+            @forelse($myWalletTransactions->where('status', 'SUCCESS') as $trx)
+              @php $isCredit = in_array($trx->type, ['TOPUP', 'REFUND', 'ORDER_EARNING']); @endphp
+              <li class="transaction-item" data-status="{{ $isCredit ? 'credit' : 'debit' }}" data-search="{{ strtolower(($trx->description ?? '') . ' ' . $trx->invoice_number . ' ' . $trx->payment_method) }}">
+                <div class="transaction-icon {{ $isCredit ? 'receive' : 'send' }}" aria-hidden="true">{{ $isCredit ? '↓' : '↑' }}</div>
                 <div class="transaction-info">
-                  <div class="transaction-name">{{ $ord->title ?? $ord->service_type }}</div>
+                  <div class="transaction-name">{{ $trx->description ?? $trx->type }}</div>
                   <div class="transaction-date">
-                    {{ $ord->updated_at->format('d M Y, H:i') }} WIB ·
-                    <strong style="color:{{ $ord->status === 'dibatalkan' ? '#dc2626' : '#059669' }};">{{ $ord->status === 'dibatalkan' ? 'Dibatalkan' : 'Selesai' }}</strong>
+                    {{ ($trx->paid_at ?? $trx->created_at)->format('d M Y, H:i') }} WIB ·
+                    <strong style="color:{{ $isCredit ? '#059669' : '#0471fc' }};">{{ $trx->payment_method }}</strong>
                   </div>
                 </div>
-                <span class="transaction-amount {{ $ord->status === 'dibatalkan' ? '' : 'debit' }}" style="{{ $ord->status === 'dibatalkan' ? 'color:var(--text-muted); text-decoration:line-through;' : '' }}">
-                  -Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}
+                <span class="transaction-amount {{ $isCredit ? 'credit' : 'debit' }}" style="color:{{ $isCredit ? '#059669' : 'var(--accent-red)' }};">
+                  {{ $isCredit ? '+' : '-' }}Rp {{ number_format($trx->amount ?? 0, 0, ',', '.') }}
                 </span>
               </li>
             @empty
-              <li style="padding:28px; text-align:center; color:var(--text-muted); font-size:0.875rem;">Belum ada riwayat transaksi.</li>
+              <li style="padding:28px; text-align:center; color:var(--text-muted); font-size:0.875rem;">Belum ada riwayat mutasi dompet.</li>
             @endforelse
           </ul>
         </div>
@@ -602,32 +603,32 @@
               <span style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;">MTR-{{ str_pad($user->id ?? 1, 5, '0', STR_PAD_LEFT) }}</span>
             </div>
             <div class="wallet-balance">
-              <span class="wallet-balance-amount" data-value="Rp 875.000">Rp 875.000</span>
+              <span class="wallet-balance-amount" data-value="Rp {{ number_format($user->balance ?? 0, 0, ',', '.') }}">Rp {{ number_format($user->balance ?? 0, 0, ',', '.') }}</span>
               <button type="button" class="eye-toggle" onclick="toggleBalance()" aria-label="Sembunyikan pendapatan">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
             </div>
             <div class="wallet-actions">
-              <button type="button" class="btn btn-primary" onclick="alert('Penarikan dana mitra ke rekening diproses (Demo).')">Tarik Pendapatan</button>
+              <button type="button" class="btn btn-primary" onclick="openWithdrawModal()">Tarik Pendapatan</button>
               <button type="button" class="btn btn-outline" onclick="switchDashboardTab('riwayat')">Lihat Slip Komisi</button>
             </div>
           </div>
 
           <div class="priority-card">
             <div class="priority-label">PERFORMA MITRA</div>
-            <div style="margin-bottom:4px; font-size:0.8125rem; color:rgba(255,255,255,0.72);">Pendapatan Minggu Ini</div>
+            <div style="margin-bottom:4px; font-size:0.8125rem; color:rgba(255,255,255,0.72);">Total Pendapatan Selesai</div>
             <div class="priority-balance">
               Rp {{ number_format($mitraCompleted->sum('price'), 0, ',', '.') }}
               <span class="priority-change">{{ $mitraCompleted->count() }} Tugas Selesai</span>
             </div>
             <div class="priority-stats">
               <div class="priority-stat">
-                <div class="priority-stat-label">Rating Pelanggan</div>
-                <div class="priority-stat-value"><span class="star">★</span> 4.92</div>
+                <div class="priority-stat-label">Tugas Diambil</div>
+                <div class="priority-stat-value">{{ $mitraAllTasks->count() }} Tugas</div>
               </div>
               <div class="priority-stat">
-                <div class="priority-stat-label">Tingkat Terima</div>
-                <div class="priority-stat-value">96%</div>
+                <div class="priority-stat-label">Tingkat Selesai</div>
+                <div class="priority-stat-value">{{ $mitraAllTasks->count() > 0 ? round(($mitraCompleted->count() / $mitraAllTasks->count()) * 100) . '%' : '0%' }}</div>
               </div>
             </div>
           </div>
@@ -1326,6 +1327,58 @@
     </div>
   </div>
 
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- MODAL: TARIK PENDAPATAN MITRA               -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="modal-overlay" id="withdraw-modal" role="dialog" aria-modal="true" aria-labelledby="withdraw-title">
+    <div class="modal-box" style="max-width:460px;">
+      <div class="modal-header">
+        <div>
+          <div style="font-size:0.6875rem; font-weight:700; color:var(--accent-green); text-transform:uppercase; letter-spacing:0.04em;">Pencairan Dana Mitra</div>
+          <h3 id="withdraw-title" style="font-size:1.125rem; font-weight:800; margin-top:2px;">Tarik Pendapatan</h3>
+        </div>
+        <button type="button" class="modal-close" onclick="closeWithdrawModal()" aria-label="Tutup">✕</button>
+      </div>
+
+      <form action="{{ Route::has('wallet.withdraw') ? route('wallet.withdraw') : url('/wallet/withdraw') }}" method="POST">
+        @csrf
+        <div style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:14px;">
+          <div style="font-size:0.75rem; color:var(--text-muted);">Saldo Tersedia untuk Ditarik:</div>
+          <div style="font-size:1.25rem; font-weight:800; color:var(--accent-blue); margin-top:2px;">Rp {{ number_format($user->balance ?? 0, 0, ',', '.') }}</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="withdraw-amount">Nominal Penarikan (Rp)</label>
+          <input type="number" id="withdraw-amount" name="amount" class="form-input" min="10000" max="{{ (int) ($user->balance ?? 0) }}" step="5000" placeholder="Minimal Rp 10.000" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="withdraw-bank">Bank / E-Wallet Tujuan</label>
+          <select id="withdraw-bank" name="bank_name" class="form-input" required>
+            <option value="BCA">Bank BCA</option>
+            <option value="Mandiri">Bank Mandiri</option>
+            <option value="BRI">Bank BRI</option>
+            <option value="BNI">Bank BNI</option>
+            <option value="GoPay">GoPay</option>
+            <option value="OVO">OVO</option>
+            <option value="DANA">DANA</option>
+            <option value="ShopeePay">ShopeePay</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="withdraw-account">Nomor Rekening / No. HP E-Wallet</label>
+          <input type="text" id="withdraw-account" name="account_number" class="form-input" placeholder="Contoh: 1234567890" required>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:16px;">
+          <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeWithdrawModal()">Batal</button>
+          <button type="submit" class="btn btn-primary" style="flex:2; justify-content:center;">Proses Penarikan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
     function dismissFlashAlert(el) {
       const alertEl = el?.closest ? el.closest('.flash-alert') : el;
@@ -1338,7 +1391,7 @@
       setTimeout(function() { dismissFlashAlert(alertEl); }, 4000);
     });
 
-    let customerBalance = 1450000;
+    let customerBalance = {{ (float) ($user->balance ?? 0) }};
     let selectedTopUpNominal = 100000;
     let customTitleEdited = false;
 
@@ -2449,6 +2502,18 @@
       if (modal) modal.classList.remove('open');
       if (topUpPollingInterval) clearInterval(topUpPollingInterval);
     }
+
+    function openWithdrawModal() {
+      document.getElementById('withdraw-modal')?.classList.add('open');
+    }
+
+    function closeWithdrawModal() {
+      document.getElementById('withdraw-modal')?.classList.remove('open');
+    }
+
+    document.getElementById('withdraw-modal')?.addEventListener('click', function(e) {
+      if (e.target === this) closeWithdrawModal();
+    });
 
     document.getElementById('qris-topup-modal')?.addEventListener('click', function(e) {
       if (e.target === this) closeTopUpModal();

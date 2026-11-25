@@ -41,9 +41,11 @@ class WalletController extends Controller
 
         $transaction = WalletTransaction::create([
             'user_id'        => $user->id,
+            'type'           => 'TOPUP',
             'invoice_number' => $invoiceNumber,
             'amount'         => $amount,
             'payment_method' => 'QRIS',
+            'description'    => 'Isi Saldo Dompet via DOKU QRIS',
             'status'         => 'PENDING',
         ]);
 
@@ -190,5 +192,53 @@ class WalletController extends Controller
         });
 
         return redirect('/dashboard')->with('success', 'Simulasi pembayaran QRIS berhasil! Saldo sebesar Rp ' . number_format($transaction->amount, 0, ',', '.') . ' telah ditambahkan ke dompet.');
+    }
+
+    /**
+     * Penarikan Dana Mitra ke Rekening / E-Wallet.
+     */
+    public function withdraw(Request $request)
+    {
+        $request->validate([
+            'amount'         => 'required|numeric|min:10000',
+            'bank_name'      => 'required|string|max:50',
+            'account_number' => 'required|string|max:40',
+        ], [
+            'amount.required'         => 'Nominal penarikan wajib diisi.',
+            'amount.min'              => 'Minimal penarikan adalah Rp 10.000.',
+            'bank_name.required'      => 'Bank / E-Wallet tujuan wajib dipilih.',
+            'account_number.required' => 'Nomor rekening / HP tujuan wajib diisi.',
+        ]);
+
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $amount = (float) $request->input('amount');
+
+        $result = DB::transaction(function () use ($user, $amount, $request) {
+            $lockedUser = User::where('id', $user->id)->lockForUpdate()->first();
+            if (!$lockedUser || (float) $lockedUser->balance < $amount) {
+                return ['type' => 'error', 'msg' => 'Saldo tidak mencukupi untuk penarikan sebesar Rp ' . number_format($amount, 0, ',', '.') . '.'];
+            }
+
+            $lockedUser->decrement('balance', $amount);
+
+            WalletTransaction::create([
+                'user_id'        => $lockedUser->id,
+                'type'           => 'WITHDRAW',
+                'invoice_number' => 'WD-' . date('YmdHis') . '-' . strtoupper(Str::random(4)),
+                'amount'         => $amount,
+                'payment_method' => $request->input('bank_name') . ' - ' . $request->input('account_number'),
+                'description'    => 'Penarikan dana ke ' . $request->input('bank_name') . ' (' . $request->input('account_number') . ')',
+                'status'         => 'SUCCESS',
+                'paid_at'        => now(),
+            ]);
+
+            return ['type' => 'success', 'msg' => 'Penarikan dana Rp ' . number_format($amount, 0, ',', '.') . ' ke ' . $request->input('bank_name') . ' berhasil diproses!'];
+        });
+
+        return redirect()->back()->with($result['type'], $result['msg']);
     }
 }

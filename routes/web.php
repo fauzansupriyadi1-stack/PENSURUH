@@ -56,6 +56,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/wallet/topup/qris', [WalletController::class, 'initiateTopUp'])->name('wallet.topup.qris');
     Route::get('/wallet/topup/status/{invoice}', [WalletController::class, 'checkStatus'])->name('wallet.topup.status');
     Route::get('/wallet/topup/simulate/{invoice}', [WalletController::class, 'simulatePayment'])->name('wallet.topup.simulate');
+    Route::post('/wallet/withdraw', [WalletController::class, 'withdraw'])->name('wallet.withdraw');
 });
 
 // DOKU Webhook Notification (Server-to-Server)

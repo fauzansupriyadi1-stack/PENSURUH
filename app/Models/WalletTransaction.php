@@ -11,9 +11,11 @@ class WalletTransaction extends Model
 
     protected $fillable = [
         'user_id',
+        'type',
         'invoice_number',
         'amount',
         'payment_method',
+        'description',
         'status',
         'doku_payment_url',
         'raw_response',

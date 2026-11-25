@@ -77,4 +77,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Order::class, 'disuruh_id');
     }
+
+    public function walletTransactions()
+    {
+        return $this->hasMany(WalletTransaction::class);
+    }
 }
