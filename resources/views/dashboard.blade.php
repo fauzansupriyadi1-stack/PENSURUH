@@ -220,7 +220,7 @@
             <button type="button" class="service-tile" data-service="Suruh Custom / Lainnya" data-price="25000" onclick="selectService(this)">
               <div class="service-icon-circle purple" aria-hidden="true">📝</div>
               <span class="service-tile-name">Suruh Custom</span>
-              <span class="service-tile-price">Mulai Rp 25rb</span>
+              <span class="service-tile-price">Harga Bebas</span>
             </button>
           </div>
         </section>
@@ -242,22 +242,50 @@
 
             <form id="orderForm" action="{{ route('orders.create') }}" method="POST">
               @csrf
+              <input type="hidden" name="service_type" id="order-service-hidden" value="Antar Paket & Dokumen">
               <div class="form-row">
                 <div class="form-group">
                   <label class="form-label" for="order-service">Jenis Layanan</label>
-                  <select id="order-service" name="service_type" class="form-input" onchange="onServiceSelectChange(this)">
-                    <option value="Antar Paket & Dokumen" data-price="15000" selected>Antar Paket & Dokumen (Rp 15.000)</option>
-                    <option value="Beli Makan & Minum" data-price="12000">Beli Makan & Minum (Rp 12.000)</option>
-                    <option value="Titip Belanja & Antre" data-price="18000">Titip Belanja & Antre (Rp 18.000)</option>
-                    <option value="Bersih Rumah & Kost" data-price="45000">Bersih Rumah & Kost (Rp 45.000)</option>
+                  <select id="order-service" class="form-input" onchange="onServiceSelectChange(this)">
+                    <option value="Antar Paket & Dokumen" data-price="15000" selected>Antar Paket &amp; Dokumen (Rp 15.000)</option>
+                    <option value="Beli Makan & Minum" data-price="12000">Beli Makan &amp; Minum (Rp 12.000)</option>
+                    <option value="Titip Belanja & Antre" data-price="18000">Titip Belanja &amp; Antre (Rp 18.000)</option>
+                    <option value="Bersih Rumah & Kost" data-price="45000">Bersih Rumah &amp; Kost (Rp 45.000)</option>
                     <option value="Jemput / Antar Orang" data-price="14000">Jemput / Antar Orang (Rp 14.000)</option>
-                    <option value="Suruh Custom / Lainnya" data-price="25000">Suruh Custom / Lainnya (Rp 25.000)</option>
+                    <option value="Suruh Custom / Lainnya" data-price="25000">Suruh Custom / Lainnya (Harga Bebas)</option>
                   </select>
                 </div>
                 <div class="form-group">
                   <label class="form-label" for="order-title">Judul Singkat Tugas</label>
                   <input type="text" id="order-title" name="title" class="form-input" value="Antar Paket & Dokumen" placeholder="Contoh: Antar Map ke Kampus" required>
                 </div>
+              </div>
+
+              <!-- Custom Order Options (Hanya muncul saat pilih Suruh Custom / Lainnya) -->
+              <div id="custom-order-fields" style="display:none; background:#eff6ff; border:1.5px dashed #93c5fd; border-radius:14px; padding:14px 16px; margin-bottom:16px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:8px; flex-wrap:wrap;">
+                  <span style="font-size:0.75rem; font-weight:700; color:var(--accent-blue); text-transform:uppercase; letter-spacing:0.04em;">Mode Suruh Custom</span>
+                  <span style="font-size:0.75rem; color:var(--text-secondary);">Atur layanan, ongkos &amp; waktu sesuai kebutuhanmu</span>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" for="custom-service-name">Nama Kategori Custom <span style="font-weight:400; color:var(--text-muted);">(opsional)</span></label>
+                    <input type="text" id="custom-service-name" class="form-input" style="background:#ffffff;" placeholder="Contoh: Servis Laptop / Antre Loket" oninput="syncCustomServiceType()">
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" for="order-custom-price">Ongkos Penawaran (Rp)</label>
+                    <input type="number" id="order-custom-price" class="form-input" style="background:#ffffff; font-weight:700; color:var(--accent-blue);" min="5000" step="1000" value="25000" placeholder="Minimal Rp 5.000" oninput="updateOrderTotal()">
+                  </div>
+                </div>
+
+                <div class="location-chips" style="margin-top:10px;">
+                  <button type="button" class="location-chip" onclick="setCustomPrice(15000)">Rp 15rb</button>
+                  <button type="button" class="location-chip" onclick="setCustomPrice(25000)">Rp 25rb</button>
+                  <button type="button" class="location-chip" onclick="setCustomPrice(50000)">Rp 50rb</button>
+                  <button type="button" class="location-chip" onclick="setCustomPrice(100000)">Rp 100rb</button>
+                </div>
+                <div style="font-size:0.6875rem; color:var(--text-secondary); margin-top:6px;">Minimal ongkos Rp 5.000. Harga akhir bisa didiskon lagi dengan voucher di bawah.</div>
               </div>
 
               <div class="form-group">
@@ -291,8 +319,9 @@
                   </select>
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
-                  <label class="form-label">Estimasi Waktu</label>
-                  <div class="form-input" style="background: var(--bg-gray); color: var(--text-secondary);">15 - 25 menit</div>
+                  <label class="form-label" for="order-custom-duration">Estimasi Waktu</label>
+                  <div id="order-duration-fixed" class="form-input" style="background: var(--bg-gray); color: var(--text-secondary);">15 - 25 menit</div>
+                  <input type="text" id="order-custom-duration" class="form-input" style="display:none;" placeholder="Contoh: 1 - 2 jam / Sore ini">
                 </div>
               </div>
 
@@ -386,6 +415,7 @@
                     style="padding:6px 14px; font-size:0.75rem;"
                     data-service="{{ $ord->service_type ?? 'Antar Paket & Dokumen' }}"
                     data-title="{{ $ord->title ?? $ord->service_type }}"
+                    data-price="{{ $ord->price ?? 25000 }}"
                     data-pickup="{{ $ord->pickup_location ?? '' }}"
                     data-dropoff="{{ $ord->destination_location ?? '' }}"
                     data-notes="{{ $ord->description ?? '' }}"
@@ -942,9 +972,58 @@
     });
 
     // Location & Service Selection
+    const CUSTOM_SERVICE_VALUE = 'Suruh Custom / Lainnya';
+
     function setPickup(loc) {
       const el = document.getElementById('order-pickup');
       if (el) el.value = loc;
+    }
+
+    function isCustomServiceSelected() {
+      const sel = document.getElementById('order-service');
+      return sel && sel.value === CUSTOM_SERVICE_VALUE;
+    }
+
+    function syncCustomServiceType() {
+      const hiddenService = document.getElementById('order-service-hidden');
+      const sel = document.getElementById('order-service');
+      const customName = document.getElementById('custom-service-name')?.value.trim() || '';
+      if (!hiddenService || !sel) return;
+
+      if (sel.value === CUSTOM_SERVICE_VALUE && customName) {
+        hiddenService.value = 'Custom: ' + customName;
+      } else {
+        hiddenService.value = sel.value;
+      }
+
+      const detail = document.getElementById('order-summary-detail');
+      if (detail) detail.textContent = hiddenService.value;
+    }
+
+    function toggleCustomMode(isCustom) {
+      const customPanel = document.getElementById('custom-order-fields');
+      const durationFixed = document.getElementById('order-duration-fixed');
+      const durationCustom = document.getElementById('order-custom-duration');
+
+      if (customPanel) customPanel.style.display = isCustom ? 'block' : 'none';
+      if (durationFixed) durationFixed.style.display = isCustom ? 'none' : 'block';
+      if (durationCustom) durationCustom.style.display = isCustom ? 'block' : 'none';
+
+      if (titleInput) {
+        titleInput.placeholder = isCustom
+          ? 'Contoh: Bantu rakit meja belajar / Antre berkas'
+          : 'Contoh: Antar Map ke Kampus';
+      }
+
+      syncCustomServiceType();
+    }
+
+    function setCustomPrice(amount) {
+      const customPriceInput = document.getElementById('order-custom-price');
+      if (customPriceInput) {
+        customPriceInput.value = amount;
+      }
+      updateOrderTotal();
     }
 
     function onServiceSelectChange(sel) {
@@ -953,8 +1032,9 @@
         t.classList.toggle('selected', t.dataset.service === service);
       });
       if (!customTitleEdited && titleInput) {
-        titleInput.value = service;
+        titleInput.value = service === CUSTOM_SERVICE_VALUE ? '' : service;
       }
+      toggleCustomMode(service === CUSTOM_SERVICE_VALUE);
       updateOrderTotal();
     }
 
@@ -965,8 +1045,9 @@
       const sel = document.getElementById('order-service');
       if (sel) sel.value = service;
       if (!customTitleEdited && titleInput) {
-        titleInput.value = service;
+        titleInput.value = service === CUSTOM_SERVICE_VALUE ? '' : service;
       }
+      toggleCustomMode(service === CUSTOM_SERVICE_VALUE);
       updateOrderTotal();
       document.getElementById('order-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -974,7 +1055,13 @@
     function updateOrderTotal() {
       const sel = document.getElementById('order-service');
       const opt = sel?.options[sel.selectedIndex];
-      const basePrice = parseInt(opt?.dataset.price || 15000, 10);
+      let basePrice = parseInt(opt?.dataset.price || 15000, 10);
+
+      if (isCustomServiceSelected()) {
+        const customRaw = parseInt(document.getElementById('order-custom-price')?.value || 0, 10);
+        basePrice = isNaN(customRaw) ? 0 : Math.max(5000, customRaw);
+      }
+
       const voucher = parseInt(document.getElementById('order-voucher')?.value || 0, 10);
       const total = Math.max(5000, basePrice - voucher);
 
@@ -984,15 +1071,37 @@
       const el = document.getElementById('order-total-price');
       if (el) el.textContent = 'Rp ' + total.toLocaleString('id-ID');
 
-      const detail = document.getElementById('order-summary-detail');
-      if (detail && sel) detail.textContent = sel.value;
+      syncCustomServiceType();
     }
+
+    document.getElementById('orderForm')?.addEventListener('submit', function() {
+      if (isCustomServiceSelected()) {
+        syncCustomServiceType();
+        updateOrderTotal();
+        const customDur = document.getElementById('order-custom-duration')?.value.trim();
+        const notes = document.getElementById('order-notes');
+        if (customDur && notes && !notes.value.includes('[Estimasi Waktu:')) {
+          notes.value = notes.value.trim() + '\n[Estimasi Waktu: ' + customDur + ']';
+        }
+      }
+    });
 
     function quickReorder(btn) {
       const sel = document.getElementById('order-service');
-      if (sel && btn.dataset.service) {
-        sel.value = btn.dataset.service;
+      const rawService = btn.dataset.service || '';
+      if (sel && rawService) {
+        const hasExactOption = Array.from(sel.options).some(o => o.value === rawService);
+        if (hasExactOption) {
+          sel.value = rawService;
+        } else {
+          sel.value = CUSTOM_SERVICE_VALUE;
+          const customInput = document.getElementById('custom-service-name');
+          if (customInput) customInput.value = rawService.replace(/^Custom:\s*/i, '');
+        }
         onServiceSelectChange(sel);
+        if (sel.value === CUSTOM_SERVICE_VALUE && btn.dataset.price) {
+          setCustomPrice(parseInt(btn.dataset.price, 10) || 25000);
+        }
       }
       if (titleInput && btn.dataset.title) {
         titleInput.value = btn.dataset.title;
