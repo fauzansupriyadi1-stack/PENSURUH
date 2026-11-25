@@ -16,6 +16,8 @@ class Order extends Model
         'slug',
         'service_type',
         'pickup_location',
+        'pickup_lat',
+        'pickup_lng',
         'destination_location',
         'description',
         'price',

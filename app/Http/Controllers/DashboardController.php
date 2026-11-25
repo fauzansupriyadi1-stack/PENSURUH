@@ -107,6 +107,8 @@ class DashboardController extends Controller
         $request->validate([
             'title'            => 'required|string|max:255',
             'service_type'     => 'required|string|max:255',
+            'pickup_lat'       => 'nullable|numeric|between:-90,90',
+            'pickup_lng'       => 'nullable|numeric|between:-180,180',
             'offer_price'      => 'nullable|numeric|min:' . $serviceMin,
             'voucher_discount' => 'nullable|numeric|in:0,5000,10000',
             'price'            => 'required|numeric|min:5000',
@@ -120,7 +122,7 @@ class DashboardController extends Controller
         $voucherDiscount = (int) ($request->input('voucher_discount', 0));
         $finalPrice = max(5000, $offerPrice - $voucherDiscount);
 
-        Order::create([
+        $orderData = [
             'penyuruh_id'          => $user->id,
             'title'                => $request->title,
             'service_type'         => $request->service_type,
@@ -129,7 +131,14 @@ class DashboardController extends Controller
             'description'          => $request->description,
             'price'                => $finalPrice,
             'status'               => 'menunggu', // Belum ada yang ambil
-        ]);
+        ];
+
+        if (Schema::hasColumn('orders', 'pickup_lat') && Schema::hasColumn('orders', 'pickup_lng')) {
+            $orderData['pickup_lat'] = $request->input('pickup_lat');
+            $orderData['pickup_lng'] = $request->input('pickup_lng');
+        }
+
+        Order::create($orderData);
 
         return redirect()->back()->with('success', 'Order suruh berhasil dibuat! Menunggu mitra pesuruh mengambil.');
     }
