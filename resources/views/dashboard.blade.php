@@ -329,6 +329,12 @@
                   <span id="dropoff-coord-text">Titik tujuan tersimpan</span>
                   <button type="button" onclick="openMapPickerModal('dropoff')" style="font-size:0.75rem; font-weight:700; color:var(--accent-blue); text-decoration:underline;">Ubah Titik</button>
                 </div>
+                <div class="location-chips">
+                  <button type="button" class="location-chip" onclick="setDropoff('Kampus PENS Gedung D4', -7.275847, 112.793755)">Kampus PENS</button>
+                  <button type="button" class="location-chip" onclick="setDropoff('Kost Kejawan Putih', -7.279520, 112.799850)">Kost Kejawan</button>
+                  <button type="button" class="location-chip" onclick="setDropoff('Galaxy Mall Surabaya', -7.275619, 112.780792)">Galaxy Mall</button>
+                  <button type="button" class="location-chip" onclick="setDropoff('Stasiun Gubeng', -7.265389, 112.752068)">Stasiun Gubeng</button>
+                </div>
               </div>
 
               <div class="form-group">
@@ -420,13 +426,17 @@
                     data-dest-lng="{{ $aktif->destination_lng ?? '' }}"
                     onclick="openRouteMapModal(this)">Lihat Peta &amp; Rute Perjalanan</button>
                   @if($aktif->status === 'menunggu')
-                    <form action="{{ route('orders.cancel', $aktif->slug) }}" method="POST" style="margin-top: 12px;" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?');">
+                    <form action="{{ Route::has('orders.cancel') ? route('orders.cancel', $aktif->slug ?? $aktif->id) : url('/orders/' . ($aktif->slug ?? $aktif->id) . '/cancel') }}" method="POST" style="margin-top: 12px;" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?');">
                       @csrf
                       <button type="submit" class="btn-logout" style="width:100%; justify-content:center; padding:9px 14px; font-size:0.8125rem;">Batalkan Pesanan</button>
                     </form>
                   @elseif($aktif->status === 'diambil')
-                    <div style="margin-top: 10px; font-size: 0.75rem; color: var(--text-secondary); background: var(--bg-gray); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px;">
-                      Pesanan sudah diambil mitra. Hubungi <strong>Admin</strong> jika perlu pembatalan.
+                    <form action="{{ Route::has('orders.complete') ? route('orders.complete', $aktif->slug ?? $aktif->id) : url('/orders/' . ($aktif->slug ?? $aktif->id) . '/complete') }}" method="POST" style="margin-top: 12px;" onsubmit="return confirm('Konfirmasi bahwa mitra telah menyelesaikan tugas ini?');">
+                      @csrf
+                      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:9px 14px; font-size:0.8125rem; background:#059669; border-color:#059669;">✓ Konfirmasi Tugas Selesai</button>
+                    </form>
+                    <div style="margin-top: 8px; font-size: 0.75rem; color: var(--text-secondary); text-align:center;">
+                      Tugas sedang dikerjakan mitra. Klik konfirmasi setelah tugas selesai.
                     </div>
                   @endif
                 </div>
@@ -506,12 +516,15 @@
                 <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
                   <span class="task-compact-price">Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
                   @if($ord->status === 'menunggu')
-                    <form action="{{ route('orders.cancel', $ord->slug) }}" method="POST" style="margin:0;" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?');">
+                    <form action="{{ Route::has('orders.cancel') ? route('orders.cancel', $ord->slug ?? $ord->id) : url('/orders/' . ($ord->slug ?? $ord->id) . '/cancel') }}" method="POST" style="margin:0;" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?');">
                       @csrf
                       <button type="submit" class="btn-logout" style="padding:3px 10px; font-size:0.7rem;">Batalkan</button>
                     </form>
                   @elseif($ord->status === 'diambil')
-                    <span style="font-size:0.6875rem; color:var(--text-muted);">Batal via Admin</span>
+                    <form action="{{ Route::has('orders.complete') ? route('orders.complete', $ord->slug ?? $ord->id) : url('/orders/' . ($ord->slug ?? $ord->id) . '/complete') }}" method="POST" style="margin:0;" onsubmit="return confirm('Konfirmasi bahwa tugas ini sudah selesai dikerjakan?');">
+                      @csrf
+                      <button type="submit" class="btn btn-primary" style="padding:3px 10px; font-size:0.7rem; background:#059669; border-color:#059669;">Selesaikan</button>
+                    </form>
                   @endif
                 </div>
               </li>
@@ -654,7 +667,7 @@
                     data-dest-lat="{{ $ord->destination_lat ?? '' }}"
                     data-dest-lng="{{ $ord->destination_lng ?? '' }}"
                     onclick="openRouteMapModal(this)">Lihat Lokasi &amp; Rute</button>
-                  <form action="{{ route('orders.take', $ord->slug) }}" method="POST" style="flex:1; min-width:135px; margin:0;">
+                  <form action="{{ Route::has('orders.take') ? route('orders.take', $ord->slug ?? $ord->id) : url('/orders/' . ($ord->slug ?? $ord->id) . '/take') }}" method="POST" style="flex:1; min-width:135px; margin:0;">
                     @csrf
                     <button type="submit" class="btn btn-primary" style="width:100%;">Ambil Order Ini</button>
                   </form>
@@ -695,10 +708,7 @@
                         data-dest-lat="{{ $ord->destination_lat ?? '' }}"
                         data-dest-lng="{{ $ord->destination_lng ?? '' }}"
                         onclick="openRouteMapModal(this)">Rute</button>
-                      <form action="{{ route('orders.complete', $ord->slug) }}" method="POST" style="margin:0;">
-                        @csrf
-                        <button type="submit" class="btn btn-primary" style="padding:4px 12px; font-size:0.75rem;">Selesai</button>
-                      </form>
+                      <span style="font-size:0.6875rem; color:var(--text-muted); background:var(--bg-gray); border:1px solid var(--border); padding:3px 8px; border-radius:6px; white-space:nowrap;">Menunggu Pemesan Selesai</span>
                     </div>
                   </div>
                 </li>
@@ -888,7 +898,7 @@
                       <button type="button" class="btn btn-outline" style="padding:5px 12px; font-size:0.75rem;" onclick="openAdminUserDetail({{ $u->id }})">Lihat Detail</button>
                     </td>
                     <td>
-                      <form action="{{ route('users.update-role', $u->slug) }}" method="POST" style="margin:0;">
+                      <form action="{{ Route::has('users.update-role') ? route('users.update-role', $u->slug ?? $u->id) : url('/dashboard/users/' . ($u->slug ?? $u->id) . '/role') }}" method="POST" style="margin:0;">
                         @csrf
                         <select name="role" onchange="this.form.submit()" class="role-select" aria-label="Ubah role {{ $u->name }}">
                           <option value="penyuruh" {{ $u->role === 'penyuruh' ? 'selected' : '' }}>Penyuruh</option>
@@ -939,8 +949,19 @@
                 </div>
                 <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
                   <span class="task-compact-price">Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
-                  @if(in_array($ord->status, ['menunggu', 'diambil']))
-                    <form action="{{ route('orders.cancel', $ord->slug) }}" method="POST" style="margin:0;" onsubmit="return confirm('Admin: yakin ingin membatalkan pesanan ini?');">
+                  @if($ord->status === 'diambil')
+                    <div style="display:flex; gap:4px; align-items:center;">
+                      <form action="{{ Route::has('orders.complete') ? route('orders.complete', $ord->slug ?? $ord->id) : url('/orders/' . ($ord->slug ?? $ord->id) . '/complete') }}" method="POST" style="margin:0;" onsubmit="return confirm('Admin: tandai pesanan ini telah selesai?');">
+                        @csrf
+                        <button type="submit" class="btn btn-primary" style="padding:3px 8px; font-size:0.7rem; background:#059669; border-color:#059669;">Selesaikan</button>
+                      </form>
+                      <form action="{{ Route::has('orders.cancel') ? route('orders.cancel', $ord->slug ?? $ord->id) : url('/orders/' . ($ord->slug ?? $ord->id) . '/cancel') }}" method="POST" style="margin:0;" onsubmit="return confirm('Admin: yakin ingin membatalkan pesanan ini?');">
+                        @csrf
+                        <button type="submit" class="btn-logout" style="padding:3px 8px; font-size:0.7rem;">Batalkan</button>
+                      </form>
+                    </div>
+                  @elseif($ord->status === 'menunggu')
+                    <form action="{{ Route::has('orders.cancel') ? route('orders.cancel', $ord->slug ?? $ord->id) : url('/orders/' . ($ord->slug ?? $ord->id) . '/cancel') }}" method="POST" style="margin:0;" onsubmit="return confirm('Admin: yakin ingin membatalkan pesanan ini?');">
                       @csrf
                       <button type="submit" class="btn-logout" style="padding:3px 10px; font-size:0.7rem;">Batalkan (Admin)</button>
                     </form>
@@ -1414,6 +1435,14 @@
       if (el) el.value = loc;
       if (typeof lat === 'number' && typeof lng === 'number') {
         setPickupCoordinates(lat, lng);
+      }
+    }
+
+    function setDropoff(loc, lat, lng) {
+      const el = document.getElementById('order-dropoff');
+      if (el) el.value = loc;
+      if (typeof lat === 'number' && typeof lng === 'number') {
+        setTargetCoordinates('dropoff', lat, lng);
       }
     }
 

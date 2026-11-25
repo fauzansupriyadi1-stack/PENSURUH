@@ -327,6 +327,14 @@ class DashboardController extends Controller
                 return ['type' => 'success', 'msg' => 'Tugas suruh ini sudah diselesaikan sebelumnya.'];
             }
 
+            $user = Auth::user();
+            $isAdmin = $user && $user->role === 'admin';
+            $isPenyuruh = $user && (int) $order->penyuruh_id === (int) $user->id;
+
+            if (!$isAdmin && !$isPenyuruh) {
+                return ['type' => 'error', 'msg' => 'Hanya Pemesan (Penyuruh) atau Admin yang berhak menyelesaikan tugas.'];
+            }
+
             $order->update([
                 'status'       => 'selesai',
                 'completed_at' => now(),
