@@ -252,13 +252,8 @@
                             <input type="text" name="name" required placeholder="Nama sesuai KTP" value="{{ old('name') }}" class="input-field w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1.5">Username</label>
-                            <div class="relative">
-                                <input type="text" required placeholder="pensuruh_user" class="input-field w-full px-3.5 pr-9 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400">
-                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                </span>
-                            </div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1.5">Email Aktif</label>
+                            <input type="email" name="email" required placeholder="nama@email.com" value="{{ old('email') }}" class="input-field w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400">
                         </div>
                     </div>
 
