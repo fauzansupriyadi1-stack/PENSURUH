@@ -117,28 +117,31 @@
     </div>
   </header>
 
-  <!-- Flash Messages -->
+  <!-- Flash Messages (Floating Popup Toast) -->
   @if(session('success'))
-    <div class="flash-alert">
+    <div class="flash-alert" role="status" aria-live="polite">
       <div class="flash-alert-box success">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         <span>{{ session('success') }}</span>
+        <button type="button" class="flash-alert-close" onclick="dismissFlashAlert(this)" aria-label="Tutup notifikasi">✕</button>
       </div>
     </div>
   @endif
   @if(session('error'))
-    <div class="flash-alert">
+    <div class="flash-alert" role="alert">
       <div class="flash-alert-box error">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <span>{{ session('error') }}</span>
+        <button type="button" class="flash-alert-close" onclick="dismissFlashAlert(this)" aria-label="Tutup notifikasi">✕</button>
       </div>
     </div>
   @endif
   @if($errors->any())
-    <div class="flash-alert">
+    <div class="flash-alert" role="alert">
       <div class="flash-alert-box error">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <span>{{ $errors->first() }}</span>
+        <button type="button" class="flash-alert-close" onclick="dismissFlashAlert(this)" aria-label="Tutup notifikasi">✕</button>
       </div>
     </div>
   @endif
@@ -857,6 +860,17 @@
   </div>
 
   <script>
+    function dismissFlashAlert(el) {
+      const alertEl = el?.closest ? el.closest('.flash-alert') : el;
+      if (!alertEl) return;
+      alertEl.classList.add('hiding');
+      setTimeout(function() { alertEl.remove(); }, 280);
+    }
+
+    document.querySelectorAll('.flash-alert').forEach(function(alertEl) {
+      setTimeout(function() { dismissFlashAlert(alertEl); }, 4000);
+    });
+
     let customerBalance = 1450000;
     let selectedTopUpNominal = 100000;
     let customTitleEdited = false;
