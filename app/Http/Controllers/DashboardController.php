@@ -178,6 +178,8 @@ class DashboardController extends Controller
             'service_type'     => 'required|string|max:255',
             'pickup_lat'       => 'nullable|numeric|between:-90,90',
             'pickup_lng'       => 'nullable|numeric|between:-180,180',
+            'destination_lat'  => 'nullable|numeric|between:-90,90',
+            'destination_lng'  => 'nullable|numeric|between:-180,180',
             'offer_price'      => 'nullable|numeric|min:' . $serviceMin,
             'voucher_discount' => 'nullable|numeric|in:0,5000,10000',
             'price'            => 'required|numeric|min:5000',
@@ -219,6 +221,11 @@ class DashboardController extends Controller
         if (Schema::hasColumn('orders', 'pickup_lat') && Schema::hasColumn('orders', 'pickup_lng')) {
             $orderData['pickup_lat'] = $request->input('pickup_lat');
             $orderData['pickup_lng'] = $request->input('pickup_lng');
+        }
+
+        if (Schema::hasColumn('orders', 'destination_lat') && Schema::hasColumn('orders', 'destination_lng')) {
+            $orderData['destination_lat'] = $request->input('destination_lat');
+            $orderData['destination_lng'] = $request->input('destination_lng');
         }
 
         try {

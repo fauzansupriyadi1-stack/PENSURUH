@@ -20,6 +20,8 @@ class Order extends Model
         'pickup_lat',
         'pickup_lng',
         'destination_location',
+        'destination_lat',
+        'destination_lng',
         'description',
         'price',
         'status',

@@ -311,8 +311,24 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="order-dropoff">Lokasi Tujuan <span style="font-weight:400; color:var(--text-muted);">(opsional)</span></label>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; gap:8px; flex-wrap:wrap;">
+                  <label class="form-label" for="order-dropoff" style="margin-bottom:0;">Lokasi Tujuan <span style="font-weight:400; color:var(--text-muted);">(opsional)</span></label>
+                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <button type="button" class="location-chip" style="background:#0471fc; color:#ffffff; border-color:#0471fc;" onclick="openMapPickerModal('dropoff')">
+                      Pilih di Peta
+                    </button>
+                    <button type="button" class="location-chip" onclick="useMyCurrentLocationFor('dropoff')">
+                      Lokasi Saya (GPS)
+                    </button>
+                  </div>
+                </div>
                 <input type="text" id="order-dropoff" name="destination_location" class="form-input" placeholder="Contoh: Gedung D4 PENS / Jl. Arif Rahman Hakim">
+                <input type="hidden" name="destination_lat" id="order-dropoff-lat">
+                <input type="hidden" name="destination_lng" id="order-dropoff-lng">
+                <div id="dropoff-coord-badge" style="display:none; margin-top:6px; font-size:0.75rem; font-weight:600; color:#059669; background:#ecfdf5; border:1px solid #a7f3d0; padding:5px 10px; border-radius:10px; align-items:center; justify-content:space-between; gap:8px;">
+                  <span id="dropoff-coord-text">Titik tujuan tersimpan</span>
+                  <button type="button" onclick="openMapPickerModal('dropoff')" style="font-size:0.75rem; font-weight:700; color:var(--accent-blue); text-decoration:underline;">Ubah Titik</button>
+                </div>
               </div>
 
               <div class="form-group">
@@ -391,6 +407,18 @@
                       </div>
                     </div>
                   @endif
+                  <button
+                    type="button"
+                    class="btn btn-outline"
+                    style="width:100%; margin-top:10px;"
+                    data-title="{{ $aktif->title ?? $aktif->service_type }}"
+                    data-pickup="{{ $aktif->pickup_location ?? 'Lokasi Jemput' }}"
+                    data-dropoff="{{ $aktif->destination_location ?? '' }}"
+                    data-lat="{{ $aktif->pickup_lat ?? '' }}"
+                    data-lng="{{ $aktif->pickup_lng ?? '' }}"
+                    data-dest-lat="{{ $aktif->destination_lat ?? '' }}"
+                    data-dest-lng="{{ $aktif->destination_lng ?? '' }}"
+                    onclick="openRouteMapModal(this)">Lihat Peta &amp; Rute Perjalanan</button>
                   @if($aktif->status === 'menunggu')
                     <form action="{{ route('orders.cancel', $aktif->slug) }}" method="POST" style="margin-top: 12px;" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?');">
                       @csrf
@@ -623,6 +651,8 @@
                     data-dropoff="{{ $ord->destination_location ?? '' }}"
                     data-lat="{{ $ord->pickup_lat ?? '' }}"
                     data-lng="{{ $ord->pickup_lng ?? '' }}"
+                    data-dest-lat="{{ $ord->destination_lat ?? '' }}"
+                    data-dest-lng="{{ $ord->destination_lng ?? '' }}"
                     onclick="openRouteMapModal(this)">Lihat Lokasi &amp; Rute</button>
                   <form action="{{ route('orders.take', $ord->slug) }}" method="POST" style="flex:1; min-width:135px; margin:0;">
                     @csrf
@@ -662,6 +692,8 @@
                         data-dropoff="{{ $ord->destination_location ?? '' }}"
                         data-lat="{{ $ord->pickup_lat ?? '' }}"
                         data-lng="{{ $ord->pickup_lng ?? '' }}"
+                        data-dest-lat="{{ $ord->destination_lat ?? '' }}"
+                        data-dest-lng="{{ $ord->destination_lng ?? '' }}"
                         onclick="openRouteMapModal(this)">Rute</button>
                       <form action="{{ route('orders.complete', $ord->slug) }}" method="POST" style="margin:0;">
                         @csrf
@@ -1386,32 +1418,53 @@
     }
 
     function setPickupCoordinates(lat, lng) {
-      const latEl = document.getElementById('order-pickup-lat');
-      const lngEl = document.getElementById('order-pickup-lng');
-      const badge = document.getElementById('pickup-coord-badge');
-      const badgeText = document.getElementById('pickup-coord-text');
+      setTargetCoordinates('pickup', lat, lng);
+    }
+
+    function setTargetCoordinates(target, lat, lng) {
+      const isDropoff = target === 'dropoff';
+      const latEl = document.getElementById(isDropoff ? 'order-dropoff-lat' : 'order-pickup-lat');
+      const lngEl = document.getElementById(isDropoff ? 'order-dropoff-lng' : 'order-pickup-lng');
+      const badge = document.getElementById(isDropoff ? 'dropoff-coord-badge' : 'pickup-coord-badge');
+      const badgeText = document.getElementById(isDropoff ? 'dropoff-coord-text' : 'pickup-coord-text');
 
       if (latEl) latEl.value = Number(lat).toFixed(7);
       if (lngEl) lngEl.value = Number(lng).toFixed(7);
       if (badge && badgeText) {
         badge.style.display = 'flex';
-        badgeText.textContent = 'Pin peta aktif (' + Number(lat).toFixed(5) + ', ' + Number(lng).toFixed(5) + ')';
+        badgeText.textContent = (isDropoff ? 'Pin tujuan aktif (' : 'Pin jemput aktif (')
+          + Number(lat).toFixed(5) + ', ' + Number(lng).toFixed(5) + ')';
       }
     }
 
-    // ── Leaflet Map Picker (Penyuruh) ──
+    // ── Leaflet Map Picker (Penyuruh: Jemput & Tujuan) ──
     let pickupMap = null;
     let pickupMarker = null;
+    let mapPickerTarget = 'pickup';
     let pendingPickupCoords = { lat: -7.275847, lng: 112.793755 };
     let pendingPickupAddress = 'Kampus PENS Sukolilo, Surabaya';
 
     function openPickupMapModal() {
+      openMapPickerModal('pickup');
+    }
+
+    function openMapPickerModal(target) {
+      mapPickerTarget = target === 'dropoff' ? 'dropoff' : 'pickup';
+      const isDropoff = mapPickerTarget === 'dropoff';
       const modal = document.getElementById('pickup-map-modal');
       if (!modal) return;
+
+      const titleEl = document.getElementById('pickup-map-title');
+      if (titleEl) {
+        titleEl.textContent = isDropoff ? 'Tentukan Titik Tujuan di Peta' : 'Tentukan Titik Jemput di Peta';
+      }
+
       modal.classList.add('open');
 
-      const existingLat = parseFloat(document.getElementById('order-pickup-lat')?.value || '');
-      const existingLng = parseFloat(document.getElementById('order-pickup-lng')?.value || '');
+      const latId = isDropoff ? 'order-dropoff-lat' : 'order-pickup-lat';
+      const lngId = isDropoff ? 'order-dropoff-lng' : 'order-pickup-lng';
+      const existingLat = parseFloat(document.getElementById(latId)?.value || '');
+      const existingLng = parseFloat(document.getElementById(lngId)?.value || '');
       if (!isNaN(existingLat) && !isNaN(existingLng)) {
         pendingPickupCoords = { lat: existingLat, lng: existingLng };
       }
@@ -1509,6 +1562,11 @@
     }
 
     function useMyCurrentLocationForPickup() {
+      useMyCurrentLocationFor('pickup');
+    }
+
+    function useMyCurrentLocationFor(target) {
+      const isDropoff = target === 'dropoff';
       if (!navigator.geolocation) {
         alert('Browser tidak mendukung GPS.');
         return;
@@ -1516,14 +1574,14 @@
       navigator.geolocation.getCurrentPosition(function(pos) {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
-        setPickupCoordinates(lat, lng);
-        const pickupInput = document.getElementById('order-pickup');
-        if (pickupInput) pickupInput.value = 'Lokasi GPS (' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ')';
+        setTargetCoordinates(isDropoff ? 'dropoff' : 'pickup', lat, lng);
+        const inputEl = document.getElementById(isDropoff ? 'order-dropoff' : 'order-pickup');
+        if (inputEl) inputEl.value = 'Lokasi GPS (' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ')';
         fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lng))
           .then(function(r) { return r.json(); })
           .then(function(data) {
-            if (data.display_name && pickupInput) {
-              pickupInput.value = data.display_name.split(',').slice(0, 3).join(', ').trim();
+            if (data.display_name && inputEl) {
+              inputEl.value = data.display_name.split(',').slice(0, 3).join(', ').trim();
             }
           }).catch(function() {});
       }, function() {
@@ -1532,20 +1590,23 @@
     }
 
     function confirmPickupMapSelection() {
-      const pickupInput = document.getElementById('order-pickup');
-      if (pickupInput && pendingPickupAddress) {
-        pickupInput.value = pendingPickupAddress;
+      const isDropoff = mapPickerTarget === 'dropoff';
+      const inputEl = document.getElementById(isDropoff ? 'order-dropoff' : 'order-pickup');
+      if (inputEl && pendingPickupAddress) {
+        inputEl.value = pendingPickupAddress;
       }
-      setPickupCoordinates(pendingPickupCoords.lat, pendingPickupCoords.lng);
+      setTargetCoordinates(mapPickerTarget, pendingPickupCoords.lat, pendingPickupCoords.lng);
       closePickupMapModal();
     }
 
-    // ── Leaflet Route Map Viewer (Mitra) ──
+    // ── Leaflet Route Map Viewer (Mitra & Penyuruh: Mitra -> Jemput -> Tujuan) ──
     let routeMap = null;
     let routeOrderMarker = null;
+    let routeDestMarker = null;
     let routeMitraMarker = null;
     let routePolyline = null;
     let currentOrderCoords = null;
+    let currentDestCoords = null;
     let currentMitraCoords = null;
 
     function openRouteMapModal(btn) {
@@ -1558,10 +1619,16 @@
       const dropoffText = btn.dataset.dropoff || '';
       const rawLat = parseFloat(btn.dataset.lat || '');
       const rawLng = parseFloat(btn.dataset.lng || '');
+      const rawDestLat = parseFloat(btn.dataset.destLat || '');
+      const rawDestLng = parseFloat(btn.dataset.destLng || '');
+
+      currentOrderCoords = null;
+      currentDestCoords = null;
+      currentMitraCoords = null;
 
       document.getElementById('route-map-title').textContent = title;
       document.getElementById('route-map-subtitle').textContent = pickupText + (dropoffText ? (' → ' + dropoffText) : '');
-      document.getElementById('route-status-text').textContent = 'Memuat lokasi order dan mencari rute...';
+      document.getElementById('route-status-text').textContent = 'Memuat lokasi jemput, tujuan, dan rute...';
 
       setTimeout(function() {
         if (!routeMap && typeof L !== 'undefined') {
@@ -1577,25 +1644,45 @@
           });
         } else if (routeMap) {
           routeMap.invalidateSize();
+          if (routeOrderMarker) { routeMap.removeLayer(routeOrderMarker); routeOrderMarker = null; }
+          if (routeDestMarker) { routeMap.removeLayer(routeDestMarker); routeDestMarker = null; }
+          if (routeMitraMarker) { routeMap.removeLayer(routeMitraMarker); routeMitraMarker = null; }
+          if (routePolyline) { routeMap.removeLayer(routePolyline); routePolyline = null; }
         }
 
-        if (!isNaN(rawLat) && !isNaN(rawLng)) {
-          setupOrderDestinationAndRoute(rawLat, rawLng, pickupText);
-        } else {
-          fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(pickupText + ', Surabaya'))
-            .then(function(r) { return r.json(); })
-            .then(function(res) {
-              if (res && res.length > 0) {
-                setupOrderDestinationAndRoute(parseFloat(res[0].lat), parseFloat(res[0].lon), pickupText);
-              } else {
-                setupOrderDestinationAndRoute(-7.275847, 112.793755, pickupText + ' (Perkiraan area)');
-              }
-            })
-            .catch(function() {
-              setupOrderDestinationAndRoute(-7.275847, 112.793755, pickupText);
-            });
-        }
+        const resolvePickup = (!isNaN(rawLat) && !isNaN(rawLng))
+          ? Promise.resolve({ lat: rawLat, lng: rawLng, label: pickupText })
+          : geocodeAddressFallback(pickupText, -7.275847, 112.793755);
+
+        const resolveDest = (!isNaN(rawDestLat) && !isNaN(rawDestLng))
+          ? Promise.resolve({ lat: rawDestLat, lng: rawDestLng, label: dropoffText || 'Lokasi Tujuan' })
+          : (dropoffText ? geocodeAddressFallback(dropoffText, null, null) : Promise.resolve(null));
+
+        Promise.all([resolvePickup, resolveDest]).then(function(results) {
+          const pickupCoord = results[0];
+          const destCoord = results[1];
+          setupOrderDestinationAndRoute(pickupCoord, destCoord);
+        });
       }, 120);
+    }
+
+    function geocodeAddressFallback(text, fallbackLat, fallbackLng) {
+      return fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(text + ', Surabaya'))
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res && res.length > 0) {
+            return { lat: parseFloat(res[0].lat), lng: parseFloat(res[0].lon), label: text };
+          }
+          if (fallbackLat !== null && fallbackLng !== null) {
+            return { lat: fallbackLat, lng: fallbackLng, label: text + ' (Perkiraan area)' };
+          }
+          return null;
+        })
+        .catch(function() {
+          return (fallbackLat !== null && fallbackLng !== null)
+            ? { lat: fallbackLat, lng: fallbackLng, label: text }
+            : null;
+        });
     }
 
     function closeRouteMapModal() {
@@ -1606,62 +1693,107 @@
       if (e.target === this) closeRouteMapModal();
     });
 
-    function setupOrderDestinationAndRoute(lat, lng, label) {
-      currentOrderCoords = { lat: lat, lng: lng };
-      const gmapsLink = document.getElementById('route-gmaps-link');
-      if (gmapsLink) {
-        gmapsLink.href = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(lat + ',' + lng);
-      }
+    function setupOrderDestinationAndRoute(pickupCoord, destCoord) {
+      currentOrderCoords = { lat: pickupCoord.lat, lng: pickupCoord.lng };
+      currentDestCoords = destCoord ? { lat: destCoord.lat, lng: destCoord.lng } : null;
 
       if (routeMap) {
         if (routeOrderMarker) routeMap.removeLayer(routeOrderMarker);
-        routeOrderMarker = L.marker([lat, lng]).addTo(routeMap).bindPopup('<b>Titik Jemput Order</b><br>' + label).openPopup();
-        routeMap.setView([lat, lng], 15);
+        routeOrderMarker = L.marker([pickupCoord.lat, pickupCoord.lng])
+          .addTo(routeMap)
+          .bindPopup('<b>Titik Jemput</b><br>' + escapeHtml(pickupCoord.label))
+          .openPopup();
+
+        if (currentDestCoords) {
+          if (routeDestMarker) routeMap.removeLayer(routeDestMarker);
+          routeDestMarker = L.circleMarker([destCoord.lat, destCoord.lng], {
+            radius: 10,
+            color: '#059669',
+            fillColor: '#10b981',
+            fillOpacity: 0.95,
+            weight: 3
+          }).addTo(routeMap).bindPopup('<b>Titik Tujuan</b><br>' + escapeHtml(destCoord.label));
+        }
+
+        routeMap.setView([pickupCoord.lat, pickupCoord.lng], 14);
       }
 
+      updateGoogleMapsRouteLink();
+      drawMitraToOrderRoute();
       refreshMitraGPSRoute();
+    }
+
+    function updateGoogleMapsRouteLink() {
+      const gmapsLink = document.getElementById('route-gmaps-link');
+      if (!gmapsLink || !currentOrderCoords) return;
+
+      let url = 'https://www.google.com/maps/dir/?api=1';
+      if (currentMitraCoords) {
+        url += '&origin=' + encodeURIComponent(currentMitraCoords.lat + ',' + currentMitraCoords.lng);
+      } else if (currentDestCoords) {
+        url += '&origin=' + encodeURIComponent(currentOrderCoords.lat + ',' + currentOrderCoords.lng);
+      }
+
+      if (currentDestCoords) {
+        if (currentMitraCoords) {
+          url += '&waypoints=' + encodeURIComponent(currentOrderCoords.lat + ',' + currentOrderCoords.lng);
+        }
+        url += '&destination=' + encodeURIComponent(currentDestCoords.lat + ',' + currentDestCoords.lng);
+      } else {
+        url += '&destination=' + encodeURIComponent(currentOrderCoords.lat + ',' + currentOrderCoords.lng);
+      }
+
+      gmapsLink.href = url;
     }
 
     function refreshMitraGPSRoute() {
       const statusEl = document.getElementById('route-status-text');
       if (!navigator.geolocation) {
-        if (statusEl) statusEl.textContent = 'GPS tidak didukung. Klik pada peta untuk set titik awalmu.';
+        if (statusEl && !currentDestCoords) {
+          statusEl.textContent = 'GPS tidak didukung. Klik pada peta untuk set titik awalmu.';
+        }
         return;
       }
-      if (statusEl) statusEl.textContent = 'Mendeteksi lokasi GPS kamu untuk menghitung rute...';
 
       navigator.geolocation.getCurrentPosition(function(pos) {
         currentMitraCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         drawMitraToOrderRoute();
       }, function() {
-        if (statusEl) statusEl.textContent = 'GPS tidak aktif. Klik di peta untuk set titik awal rute ke order.';
+        if (statusEl && !currentDestCoords) {
+          statusEl.textContent = 'GPS tidak aktif. Klik di peta untuk set titik awal rute ke order.';
+        }
       }, { enableHighAccuracy: true, timeout: 7000 });
     }
 
     function drawMitraToOrderRoute() {
-      if (!routeMap || !currentOrderCoords || !currentMitraCoords) return;
+      if (!routeMap || !currentOrderCoords) return;
       const statusEl = document.getElementById('route-status-text');
 
-      if (routeMitraMarker) routeMap.removeLayer(routeMitraMarker);
-      routeMitraMarker = L.circleMarker([currentMitraCoords.lat, currentMitraCoords.lng], {
-        radius: 9,
-        color: '#0471fc',
-        fillColor: '#38b6ff',
-        fillOpacity: 0.95,
-        weight: 3
-      }).addTo(routeMap).bindPopup('<b>Posisi Kamu (Mitra)</b>');
-
-      const gmapsLink = document.getElementById('route-gmaps-link');
-      if (gmapsLink) {
-        gmapsLink.href = 'https://www.google.com/maps/dir/?api=1&origin='
-          + encodeURIComponent(currentMitraCoords.lat + ',' + currentMitraCoords.lng)
-          + '&destination=' + encodeURIComponent(currentOrderCoords.lat + ',' + currentOrderCoords.lng);
+      if (currentMitraCoords) {
+        if (routeMitraMarker) routeMap.removeLayer(routeMitraMarker);
+        routeMitraMarker = L.circleMarker([currentMitraCoords.lat, currentMitraCoords.lng], {
+          radius: 9,
+          color: '#0471fc',
+          fillColor: '#38b6ff',
+          fillOpacity: 0.95,
+          weight: 3
+        }).addTo(routeMap).bindPopup('<b>Posisi Awal / Kamu</b>');
       }
 
-      const osrmUrl = 'https://router.project-osrm.org/route/v1/driving/'
-        + currentMitraCoords.lng + ',' + currentMitraCoords.lat + ';'
-        + currentOrderCoords.lng + ',' + currentOrderCoords.lat
-        + '?overview=full&geometries=geojson';
+      updateGoogleMapsRouteLink();
+
+      const waypoints = [];
+      if (currentMitraCoords) waypoints.push(currentMitraCoords);
+      waypoints.push(currentOrderCoords);
+      if (currentDestCoords) waypoints.push(currentDestCoords);
+
+      if (waypoints.length < 2) {
+        if (statusEl) statusEl.textContent = 'Klik di peta atau aktifkan GPS untuk melihat rute menuju titik jemput.';
+        return;
+      }
+
+      const osrmCoords = waypoints.map(function(p) { return p.lng + ',' + p.lat; }).join(';');
+      const osrmUrl = 'https://router.project-osrm.org/route/v1/driving/' + osrmCoords + '?overview=full&geometries=geojson';
 
       fetch(osrmUrl)
         .then(function(r) { return r.json(); })
@@ -1675,26 +1807,29 @@
 
             const distKm = (route.distance / 1000).toFixed(1);
             const durMin = Math.max(1, Math.round(route.duration / 60));
-            if (statusEl) statusEl.textContent = 'Rute ditemukan: ' + distKm + ' km (~' + durMin + ' menit berkendara)';
+            const routeLabel = currentMitraCoords && currentDestCoords
+              ? 'Rute (Kamu → Jemput → Tujuan)'
+              : (currentDestCoords ? 'Rute (Jemput → Tujuan)' : 'Rute (Kamu → Jemput)');
+            if (statusEl) statusEl.textContent = routeLabel + ': ' + distKm + ' km (~' + durMin + ' menit)';
           } else {
-            drawFallbackDirectLine();
+            drawFallbackDirectLine(waypoints);
           }
         })
         .catch(function() {
-          drawFallbackDirectLine();
+          drawFallbackDirectLine(waypoints);
         });
     }
 
-    function drawFallbackDirectLine() {
-      if (!routeMap || !currentOrderCoords || !currentMitraCoords) return;
+    function drawFallbackDirectLine(waypoints) {
+      if (!routeMap || !waypoints || waypoints.length < 2) return;
       if (routePolyline) routeMap.removeLayer(routePolyline);
-      routePolyline = L.polyline([
-        [currentMitraCoords.lat, currentMitraCoords.lng],
-        [currentOrderCoords.lat, currentOrderCoords.lng]
-      ], { color: '#0471fc', weight: 4, dashArray: '8, 8' }).addTo(routeMap);
+      routePolyline = L.polyline(
+        waypoints.map(function(p) { return [p.lat, p.lng]; }),
+        { color: '#0471fc', weight: 4, dashArray: '8, 8' }
+      ).addTo(routeMap);
       routeMap.fitBounds(routePolyline.getBounds(), { padding: [36, 36] });
       const statusEl = document.getElementById('route-status-text');
-      if (statusEl) statusEl.textContent = 'Garis lurus menuju lokasi order ditampilkan (gunakan Google Maps untuk navigasi belokan).';
+      if (statusEl) statusEl.textContent = 'Garis rute langsung ditampilkan (gunakan Google Maps untuk navigasi belokan).';
     }
 
     function isCustomServiceSelected() {
