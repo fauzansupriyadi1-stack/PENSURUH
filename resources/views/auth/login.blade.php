@@ -281,17 +281,6 @@
                         <p class="text-[11px] text-gray-400 mt-1">Min. 8 karakter. Kombinasi huruf, angka & simbol lebih aman.</p>
                     </div>
 
-                    <!-- Mitra Skills (hidden by default) -->
-                    <div id="mitraSkillsReg" class="hidden bg-blue-50/60 border border-blue-100 rounded-xl p-3">
-                        <label class="block text-xs font-bold text-gray-700 mb-2">Layanan yang Ingin Ditawarkan</label>
-                        <div class="grid grid-cols-2 gap-1.5 text-xs font-medium text-gray-700">
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked class="accent-[#0471fc]"> Antar Barang</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked class="accent-[#0471fc]"> Bersih-bersih</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-[#0471fc]"> Rawat Tanaman</label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="accent-[#0471fc]"> Teman Ngobrol</label>
-                        </div>
-                    </div>
-
                     <!-- Submit -->
                     <button type="submit" class="w-full bg-[#0471fc] hover:bg-[#0060db] active:scale-[0.98] text-white font-bold py-3.5 rounded-xl text-sm shadow-md transition-all cursor-pointer">
                         Daftar Sekarang
@@ -372,16 +361,13 @@
             if (roleInput) roleInput.value = role === 'mitra' ? 'disuruh' : 'penyuruh';
             const customerBtn = document.getElementById('roleCustomerBtn');
             const mitraBtn = document.getElementById('roleMitraBtn');
-            const mitraSkills = document.getElementById('mitraSkillsReg');
 
             if (role === 'customer') {
                 customerBtn.className = 'flex-1 py-2.5 rounded-full bg-[#0471fc] text-white shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5';
                 mitraBtn.className = 'flex-1 py-2.5 rounded-full text-gray-500 transition-all cursor-pointer flex items-center justify-center gap-1.5';
-                if (mitraSkills) mitraSkills.classList.add('hidden');
             } else {
                 mitraBtn.className = 'flex-1 py-2.5 rounded-full bg-[#0471fc] text-white shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5';
                 customerBtn.className = 'flex-1 py-2.5 rounded-full text-gray-500 transition-all cursor-pointer flex items-center justify-center gap-1.5';
-                if (mitraSkills) mitraSkills.classList.remove('hidden');
             }
         }
 
