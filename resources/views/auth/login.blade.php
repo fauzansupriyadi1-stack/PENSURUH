@@ -1,4 +1,4 @@
-@php
+﻿@php
     $isRegister = request()->is('register') || request()->routeIs('register') || request()->query('tab') === 'register';
 @endphp
 <!DOCTYPE html>
@@ -135,7 +135,8 @@
                 <h1 class="text-[24px] sm:text-[28px] font-black text-gray-900 mb-1">Masuk</h1>
                 <p class="text-gray-400 text-sm mb-7">Lanjutkan ke akun PenSuruh kamu.</p>
 
-                <form onsubmit="handleLogin(event)" class="flex flex-col gap-4">
+                <form method="POST" action="/login" class="flex flex-col gap-4" id="loginForm">
+                    @csrf
                     <!-- WhatsApp / Email -->
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1.5">Nomor WhatsApp / Email</label>
@@ -147,7 +148,9 @@
                             </span>
                             <input
                                 type="text"
+                                name="identifier"
                                 required
+                                value="{{ old('identifier') }}"
                                 placeholder="0812xxxx atau email@domain.com"
                                 class="input-field w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400"
                             >
@@ -169,6 +172,7 @@
                             <input
                                 id="loginPassword"
                                 type="password"
+                                name="password"
                                 required
                                 placeholder="••••••••"
                                 class="input-field w-full pl-10 pr-11 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400"
@@ -184,7 +188,7 @@
 
                     <!-- Remember me -->
                     <label class="flex items-center gap-2.5 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 rounded border-gray-300 accent-[#0471fc]">
+                        <input type="checkbox" name="remember" class="w-4 h-4 rounded border-gray-300 accent-[#0471fc]">
                         <span class="text-xs text-gray-600 font-medium">Ingat saya</span>
                     </label>
 
@@ -229,12 +233,14 @@
                     <button id="roleMitraBtn" type="button" onclick="setRole('mitra')" class="flex-1 py-2 rounded-full text-gray-500 transition-all cursor-pointer">Mitra Pesuruh</button>
                 </div>
 
-                <form onsubmit="handleRegister(event)" class="flex flex-col gap-3.5">
+                <form method="POST" action="/register" class="flex flex-col gap-3.5" id="registerForm">
+                    @csrf
+                    <input type="hidden" name="role" id="roleInput" value="penyuruh">
                     <!-- Full Name + Username row -->
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-bold text-gray-600 mb-1.5">Nama Lengkap</label>
-                            <input type="text" required placeholder="Nama sesuai KTP" class="input-field w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400">
+                            <input type="text" name="name" required placeholder="Nama sesuai KTP" value="{{ old('name') }}" class="input-field w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-600 mb-1.5">Username</label>
@@ -252,7 +258,7 @@
                         <label class="block text-xs font-bold text-gray-600 mb-1.5">Nomor WhatsApp Aktif</label>
                         <div class="relative">
                             <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 select-none">+62</span>
-                            <input type="tel" required placeholder="812 xxxx xxxx" class="input-field w-full pl-12 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400">
+                            <input type="tel" name="phone" required placeholder="812 xxxx xxxx" value="{{ old('phone') }}" class="input-field w-full pl-12 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400">
                         </div>
                     </div>
 
@@ -260,7 +266,7 @@
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1.5">Buat Password</label>
                         <div class="relative">
-                            <input id="regPassword" type="password" required placeholder="Min. 8 karakter" class="input-field w-full px-3.5 pr-11 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400">
+                            <input id="regPassword" type="password" name="password" required placeholder="Min. 8 karakter" class="input-field w-full px-3.5 pr-11 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400">
                             <button type="button" class="pw-toggle absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" onclick="togglePassword('regPassword', this)">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -358,6 +364,8 @@
 
         // Role Switcher (Register)
         function setRole(role) {
+            const roleInput = document.getElementById('roleInput');
+            if (roleInput) roleInput.value = role === 'mitra' ? 'disuruh' : 'penyuruh';
             const customerBtn = document.getElementById('roleCustomerBtn');
             const mitraBtn = document.getElementById('roleMitraBtn');
             const mitraSkills = document.getElementById('mitraSkillsReg');
@@ -401,21 +409,7 @@
             toast.classList.remove('translate-y-0', 'opacity-100');
         }
 
-        // Form Handlers
-        function handleLogin(e) {
-            e.preventDefault();
-            showAuthToast('Berhasil masuk', 'Mengalihkan ke dashboard...');
-            setTimeout(() => {
-                window.location.href = '/dashboard';
-            }, 600);
-        }
-        function handleRegister(e) {
-            e.preventDefault();
-            showAuthToast('Akun dibuat', 'Mengalihkan ke dashboard...');
-            setTimeout(() => {
-                window.location.href = '/dashboard';
-            }, 600);
-        }
+        // Form Handlers - forms now POST to backend via PHP
 
         document.addEventListener('DOMContentLoaded', () => {
             if (window.location.pathname.includes('/register') || window.location.hash === '#register' || new URLSearchParams(window.location.search).get('tab') === 'register') {
@@ -425,4 +419,7 @@
     </script>
 </body>
 </html>
+
+
+
 
