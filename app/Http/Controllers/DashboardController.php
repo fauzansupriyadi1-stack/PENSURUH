@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class DashboardController extends Controller
@@ -105,6 +106,7 @@ class DashboardController extends Controller
         $serviceMin = $minPrices[$request->service_type] ?? 5000;
 
         $request->validate([
+            'idempotency_key'  => 'nullable|string|max:64',
             'title'            => 'required|string|max:255',
             'service_type'     => 'required|string|max:255',
             'pickup_lat'       => 'nullable|numeric|between:-90,90',
@@ -115,6 +117,16 @@ class DashboardController extends Controller
         ], [
             'offer_price.min' => 'Ongkos minimal untuk layanan ' . $request->service_type . ' adalah Rp ' . number_format($serviceMin, 0, ',', '.') . '.',
         ]);
+
+        $idempotencyKey = trim((string) $request->input('idempotency_key', ''));
+        $hasIdempotencyCol = Schema::hasColumn('orders', 'idempotency_key');
+
+        if ($hasIdempotencyCol && $idempotencyKey !== '') {
+            $existing = Order::where('idempotency_key', $idempotencyKey)->first();
+            if ($existing) {
+                return redirect()->back()->with('success', 'Order suruh sudah tercatat sebelumnya (permintaan ganda dicegah).');
+            }
+        }
 
         $offerPrice = $request->filled('offer_price')
             ? (int) $request->offer_price
@@ -133,12 +145,25 @@ class DashboardController extends Controller
             'status'               => 'menunggu', // Belum ada yang ambil
         ];
 
+        if ($hasIdempotencyCol && $idempotencyKey !== '') {
+            $orderData['idempotency_key'] = $idempotencyKey;
+        }
+
         if (Schema::hasColumn('orders', 'pickup_lat') && Schema::hasColumn('orders', 'pickup_lng')) {
             $orderData['pickup_lat'] = $request->input('pickup_lat');
             $orderData['pickup_lng'] = $request->input('pickup_lng');
         }
 
-        Order::create($orderData);
+        try {
+            DB::transaction(function () use ($orderData, $hasIdempotencyCol, $idempotencyKey) {
+                if ($hasIdempotencyCol && $idempotencyKey !== '' && Order::where('idempotency_key', $idempotencyKey)->lockForUpdate()->exists()) {
+                    return;
+                }
+                Order::create($orderData);
+            });
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            return redirect()->back()->with('success', 'Order suruh sudah tercatat sebelumnya (permintaan ganda dicegah).');
+        }
 
         return redirect()->back()->with('success', 'Order suruh berhasil dibuat! Menunggu mitra pesuruh mengambil.');
     }
@@ -168,7 +193,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Mitra (Disuruh) mengambil order terbuka menggunakan slug.
+     * Mitra (Disuruh) mengambil order terbuka secara atomik & idempotent.
      */
     public function takeOrder($slug)
     {
@@ -177,40 +202,63 @@ class DashboardController extends Controller
             return redirect()->route('login');
         }
 
-        $order = $this->findBySlugOrId(Order::class, (string) $slug);
-        if (!$order) {
+        $target = $this->findBySlugOrId(Order::class, (string) $slug);
+        if (!$target) {
             return redirect()->back()->with('error', 'Order tidak ditemukan.');
         }
 
-        if ($order->status !== 'menunggu') {
-            return redirect()->back()->with('error', 'Order ini sudah diambil oleh mitra lain.');
-        }
+        $result = DB::transaction(function () use ($target, $user) {
+            $order = Order::where('id', $target->id)->lockForUpdate()->first();
+            if (!$order) {
+                return ['type' => 'error', 'msg' => 'Order tidak ditemukan.'];
+            }
+            if ($order->status === 'diambil' && (int) $order->disuruh_id === (int) $user->id) {
+                return ['type' => 'success', 'msg' => 'Order ini sudah kamu ambil sebelumnya.'];
+            }
+            if ($order->status !== 'menunggu') {
+                return ['type' => 'error', 'msg' => 'Order ini sudah diambil oleh mitra lain.'];
+            }
 
-        $order->update([
-            'disuruh_id' => $user->id,
-            'status'     => 'diambil',
-            'taken_at'   => now(),
-        ]);
+            $order->update([
+                'disuruh_id' => $user->id,
+                'status'     => 'diambil',
+                'taken_at'   => now(),
+            ]);
 
-        return redirect()->back()->with('success', 'Berhasil mengambil order! Silakan kerjakan tugas.');
+            return ['type' => 'success', 'msg' => 'Berhasil mengambil order! Silakan kerjakan tugas.'];
+        });
+
+        return redirect()->back()->with($result['type'], $result['msg']);
     }
 
     /**
-     * Selesaikan order menggunakan slug.
+     * Selesaikan order secara idempotent.
      */
     public function completeOrder($slug)
     {
-        $order = $this->findBySlugOrId(Order::class, (string) $slug);
-        if (!$order) {
+        $target = $this->findBySlugOrId(Order::class, (string) $slug);
+        if (!$target) {
             return redirect()->back()->with('error', 'Order tidak ditemukan.');
         }
 
-        $order->update([
-            'status'       => 'selesai',
-            'completed_at' => now(),
-        ]);
+        $result = DB::transaction(function () use ($target) {
+            $order = Order::where('id', $target->id)->lockForUpdate()->first();
+            if (!$order) {
+                return ['type' => 'error', 'msg' => 'Order tidak ditemukan.'];
+            }
+            if ($order->status === 'selesai') {
+                return ['type' => 'success', 'msg' => 'Tugas suruh ini sudah diselesaikan sebelumnya.'];
+            }
 
-        return redirect()->back()->with('success', 'Tugas suruh telah diselesaikan.');
+            $order->update([
+                'status'       => 'selesai',
+                'completed_at' => now(),
+            ]);
+
+            return ['type' => 'success', 'msg' => 'Tugas suruh telah diselesaikan.'];
+        });
+
+        return redirect()->back()->with($result['type'], $result['msg']);
     }
 
     /**
