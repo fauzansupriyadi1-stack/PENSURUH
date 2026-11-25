@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class DashboardController extends Controller
 {
@@ -134,6 +135,30 @@ class DashboardController extends Controller
     }
 
     /**
+     * Cari record berdasarkan kolom slug (jika ada), ID numerik, atau akhiran -{id}.
+     */
+    private function findBySlugOrId(string $modelClass, string $slug)
+    {
+        $table = (new $modelClass)->getTable();
+        if (Schema::hasColumn($table, 'slug')) {
+            $record = $modelClass::where('slug', $slug)->first();
+            if ($record) {
+                return $record;
+            }
+        }
+
+        if (ctype_digit($slug)) {
+            return $modelClass::find((int) $slug);
+        }
+
+        if (preg_match('/-(\d+)$/', $slug, $m)) {
+            return $modelClass::find((int) $m[1]);
+        }
+
+        return null;
+    }
+
+    /**
      * Mitra (Disuruh) mengambil order terbuka menggunakan slug.
      */
     public function takeOrder($slug)
@@ -143,10 +168,7 @@ class DashboardController extends Controller
             return redirect()->route('login');
         }
 
-        $order = Order::where('slug', $slug)->orWhere('id', $slug)->first();
-        if (!$order && preg_match('/-(\d+)$/', $slug, $m)) {
-            $order = Order::find($m[1]);
-        }
+        $order = $this->findBySlugOrId(Order::class, (string) $slug);
         if (!$order) {
             return redirect()->back()->with('error', 'Order tidak ditemukan.');
         }
@@ -169,10 +191,7 @@ class DashboardController extends Controller
      */
     public function completeOrder($slug)
     {
-        $order = Order::where('slug', $slug)->orWhere('id', $slug)->first();
-        if (!$order && preg_match('/-(\d+)$/', $slug, $m)) {
-            $order = Order::find($m[1]);
-        }
+        $order = $this->findBySlugOrId(Order::class, (string) $slug);
         if (!$order) {
             return redirect()->back()->with('error', 'Order tidak ditemukan.');
         }
@@ -204,10 +223,7 @@ class DashboardController extends Controller
      */
     public function updateUserRole(Request $request, $slug)
     {
-        $targetUser = User::where('slug', $slug)->orWhere('id', $slug)->first();
-        if (!$targetUser && preg_match('/-(\d+)$/', $slug, $m)) {
-            $targetUser = User::find($m[1]);
-        }
+        $targetUser = $this->findBySlugOrId(User::class, (string) $slug);
         if (!$targetUser) {
             return redirect()->back()->with('error', 'Pengguna tidak ditemukan.');
         }

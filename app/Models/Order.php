@@ -39,7 +39,7 @@ class Order extends Model
     {
         parent::boot();
         static::creating(function ($order) {
-            if (empty($order->slug)) {
+            if (empty($order->slug) && \Illuminate\Support\Facades\Schema::hasColumn('orders', 'slug')) {
                 $order->slug = 'order-' . \Illuminate\Support\Str::slug($order->title ?? 'tugas') . '-' . substr(uniqid(), -6);
             }
         });
