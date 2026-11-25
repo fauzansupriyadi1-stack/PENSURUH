@@ -51,6 +51,8 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 body {
@@ -59,9 +61,33 @@ body {
   background: var(--bg-gray);
   line-height: 1.5;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
+}
+
+.main-content,
+.role-view,
+.tab-content,
+.card,
+.gopay-bar,
+.service-grid,
+.service-tile,
+.penyuruh-workspace > *,
+.grid-2 > *,
+.wallet-section > *,
+.form-row > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+select.form-input,
+input.form-input,
+textarea.form-input {
+  max-width: 100%;
+  min-width: 0;
 }
 
 a {
@@ -393,85 +419,33 @@ img {
   width: 100%;
 }
 
-/* ── Flash Alerts (Floating Popup Toast) ── */
+/* ── Flash Alerts ── */
 .flash-alert {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1200;
-  max-width: 400px;
-  width: calc(100% - 40px);
-  pointer-events: none;
-  animation: toastSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-  transition: opacity 0.28s ease, transform 0.28s ease;
-}
-
-.flash-alert.hiding {
-  opacity: 0;
-  transform: translateY(-14px);
-}
-
-@keyframes toastSlideIn {
-  from { opacity: 0; transform: translateY(-16px) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  max-width: 1200px;
+  margin: 16px auto 0;
+  padding: 0 24px;
 }
 
 .flash-alert-box {
-  pointer-events: auto;
-  padding: 13px 15px;
-  border-radius: var(--radius-lg);
-  font-size: 0.8125rem;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
   font-weight: 600;
   display: flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.14);
-  backdrop-filter: blur(10px);
-}
-
-.flash-alert-box span {
-  flex: 1;
-  line-height: 1.4;
-}
-
-.flash-alert-close {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 700;
-  opacity: 0.65;
-  flex-shrink: 0;
-  transition: opacity 0.15s, background 0.15s;
-}
-.flash-alert-close:hover {
-  opacity: 1;
-  background: rgba(0, 0, 0, 0.06);
 }
 
 .flash-alert-box.success {
-  background: rgba(236, 253, 245, 0.97);
+  background: #ecfdf5;
   border: 1px solid #a7f3d0;
   color: #065f46;
 }
 
 .flash-alert-box.error {
-  background: rgba(254, 242, 242, 0.97);
+  background: #fef2f2;
   border: 1px solid #fecaca;
   color: #991b1b;
-}
-
-@media (max-width: 640px) {
-  .flash-alert {
-    top: 14px;
-    right: 14px;
-    left: 14px;
-    width: auto;
-    max-width: none;
-  }
 }
 
 /* ── Cards ── */
@@ -1735,7 +1709,7 @@ img {
 
 @media (max-width: 768px) {
   .header-inner {
-    padding: 10px 16px;
+    padding: 10px 14px;
   }
 
   .header-user-block {
@@ -1763,11 +1737,7 @@ img {
   }
 
   .main-content {
-    padding: 18px 16px 40px;
-  }
-
-  .flash-alert {
-    padding: 0 16px;
+    padding: 16px 14px 40px;
   }
 
   .grid-2 {
@@ -1775,8 +1745,9 @@ img {
   }
 
   .gopay-bar {
-    padding: 18px;
+    padding: 18px 16px;
     border-radius: var(--radius-lg);
+    width: 100%;
   }
 
   .gopay-balance-box {
@@ -1786,7 +1757,7 @@ img {
 
   .gopay-wallet-info {
     width: 100%;
-    gap: 16px;
+    gap: 14px;
   }
 
   .gopay-actions {
@@ -1795,9 +1766,9 @@ img {
 
   .gopay-actions .btn-gopay,
   .gopay-actions .btn-gopay-ghost {
-    flex: 1;
+    flex: 1 1 auto;
     justify-content: center;
-    padding: 9px 12px;
+    padding: 9px 10px;
     font-size: 0.75rem;
   }
 
@@ -1808,14 +1779,25 @@ img {
 
   .search-box {
     width: 100%;
+    min-width: 0;
   }
 
   .management-section {
+    padding: 16px;
+  }
+
+  .modal-box {
     padding: 18px;
+    max-height: 92vh;
+    overflow-y: auto;
   }
 }
 
 @media (max-width: 520px) {
+  .header-inner {
+    padding: 10px 12px;
+  }
+
   .header-user-block {
     border-left: none;
     padding-left: 0;
@@ -1825,29 +1807,33 @@ img {
     display: none;
   }
 
+  .main-content {
+    padding: 14px 12px 36px;
+  }
+
   .service-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
   }
 
   .service-tile {
-    padding: 12px 6px;
+    padding: 11px 6px;
     border-radius: var(--radius-md);
   }
 
   .service-icon-circle {
-    width: 40px;
-    height: 40px;
-    font-size: 1.25rem;
+    width: 38px;
+    height: 38px;
+    font-size: 1.2rem;
     border-radius: 12px;
   }
 
   .service-tile-name {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
   }
 
   .service-tile-price {
-    font-size: 0.6875rem;
+    font-size: 0.65rem;
   }
 
   .form-row {
@@ -1867,14 +1853,26 @@ img {
   }
 
   .wallet-balance {
-    font-size: 1.625rem;
-  }
-
-  .priority-balance {
     font-size: 1.5rem;
   }
 
+  .gopay-balance-value {
+    font-size: 1.375rem;
+  }
+
+  .priority-balance {
+    font-size: 1.4rem;
+  }
+
   .card {
-    padding: 18px;
+    padding: 16px;
+  }
+
+  .order-summary-box {
+    padding: 12px 14px;
+  }
+
+  .order-summary-box .total-price {
+    font-size: 1.1rem;
   }
 }
