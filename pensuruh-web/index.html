@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PenSuruh - Masuk / Daftar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-page">
+
+  <div class="auth-container">
+    <!-- Left Panel -->
+    <div class="auth-panel-left">
+      <div class="auth-brand">
+        <div class="auth-brand-icon">⚡</div>
+        <span class="auth-brand-name">PenSuruh</span>
+      </div>
+
+      <h1 class="auth-headline">Jasa Suruh,<br>Kapan Saja.</h1>
+      <p class="auth-subhead">Daftarkan akun dan langsung cari pesuruh terpercaya di sekitarmu.</p>
+
+      <div class="auth-steps">
+        <div class="auth-step active" id="step-1">
+          <div class="step-number">1</div>
+          <span>Daftar akun</span>
+        </div>
+        <div class="auth-step" id="step-2">
+          <div class="step-number">2</div>
+          <span>Pilih pesuruh</span>
+        </div>
+        <div class="auth-step" id="step-3">
+          <div class="step-number">3</div>
+          <span>Tugas beres</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="auth-panel-right">
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <a href="#" class="auth-tab active" data-tab="login">Masuk</a>
+        <a href="#" class="auth-tab" data-tab="register">Daftar Baru</a>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div class="auth-form active" id="form-login">
+        <h2 class="auth-form-title">Masuk</h2>
+        <p class="auth-form-subtitle">Lanjutkan ke akun PenSuruh kamu.</p>
+
+        <form id="loginForm" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="login-email">Nomor WhatsApp / Email</label>
+            <input type="text" id="login-email" class="form-input" placeholder="0812xxx atau email@domain.com" required>
+          </div>
+
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label class="form-label" for="login-password">Password</label>
+              <a href="#" class="form-link-right" style="font-size: 0.8125rem;" onclick="alert('Fitur lupa password belum tersedia.'); return false;">Lupa password?</a>
+            </div>
+            <div class="form-input-wrapper">
+              <span class="input-icon-left">🔒</span>
+              <input type="password" id="login-password" class="form-input with-icon-left with-icon-right" placeholder="••••••••" required>
+              <button type="button" class="input-icon-right" aria-label="Tampilkan password" onclick="togglePassword('login-password', this)">👁</button>
+            </div>
+          </div>
+
+          <div class="form-check">
+            <input type="checkbox" id="remember-me">
+            <label for="remember-me">Ingat saya</label>
+          </div>
+
+          <button type="submit" class="btn-auth">Masuk</button>
+        </form>
+
+        <div class="auth-divider">atau</div>
+
+        <button type="button" class="btn-google" onclick="googleSignIn()">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Masuk dengan Google
+        </button>
+
+        <p class="auth-footer">
+          Belum punya akun? <a href="#" onclick="switchTab('register'); return false;">Daftar di sini</a>
+        </p>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div class="auth-form" id="form-register">
+        <h2 class="auth-form-title">Buat Akun</h2>
+        <p class="auth-form-subtitle">Daftar gratis dan langsung cari pesuruh.</p>
+
+        <!-- Role Selector -->
+        <div class="role-selector">
+          <div class="role-option active" data-role="customer" onclick="selectRole(this, 'customer')">Pengguna Jasa</div>
+          <div class="role-option" data-role="mitra" onclick="selectRole(this, 'mitra')">Mitra Pesuruh</div>
+        </div>
+
+        <form id="registerForm" novalidate>
+          <div class="form-row" style="margin-bottom: 18px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="reg-name">Nama Lengkap</label>
+              <input type="text" id="reg-name" class="form-input" placeholder="Nama sesuai KTP" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="reg-username">Username</label>
+              <div class="form-input-wrapper">
+                <input type="text" id="reg-username" class="form-input" placeholder="pensuruh_user" required>
+                <span class="check-icon" id="username-check" style="display: none;">✓</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-phone">Nomor WhatsApp Aktif</label>
+            <div class="phone-input-group">
+              <input type="text" class="phone-prefix" value="+62" readonly>
+              <input type="tel" id="reg-phone" class="form-input" placeholder="812 xxxx xxxx" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-password">Buat Password</label>
+            <div class="form-input-wrapper">
+              <input type="password" id="reg-password" class="form-input with-icon-right" placeholder="Min. 8 karakter" required minlength="8">
+              <button type="button" class="input-icon-right" aria-label="Tampilkan password" onclick="togglePassword('reg-password', this)">👁</button>
+            </div>
+            <p class="form-hint">Min. 8 karakter, kombinasi huruf, angka & simbol aman.</p>
+          </div>
+
+          <button type="submit" class="btn-auth">Daftar Sekarang</button>
+        </form>
+
+        <div class="auth-divider">atau</div>
+
+        <button type="button" class="btn-google" onclick="googleSignUp()">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Daftar dengan Google
+        </button>
+
+        <p class="auth-terms">
+          Dengan mendaftar, kamu setuju dengan <a href="#">Kebijakan Privasi</a> & <a href="#">Syarat Layanan</a> PenSuruh.
+        </p>
+
+        <p class="auth-footer">
+          Sudah punya akun? <a href="#" onclick="switchTab('login'); return false;">Masuk di sini</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
