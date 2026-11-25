@@ -408,6 +408,16 @@
                       </div>
                     </div>
                   @endif
+                  @if($aktif->status === 'menunggu')
+                    <form action="{{ route('orders.cancel', $aktif->slug) }}" method="POST" style="margin-top: 12px;" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?');">
+                      @csrf
+                      <button type="submit" class="btn-logout" style="width:100%; justify-content:center; padding:9px 14px; font-size:0.8125rem;">Batalkan Pesanan</button>
+                    </form>
+                  @elseif($aktif->status === 'diambil')
+                    <div style="margin-top: 10px; font-size: 0.75rem; color: var(--text-secondary); background: var(--bg-gray); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px;">
+                      Pesanan sudah diambil mitra. Hubungi <strong>Admin</strong> jika perlu pembatalan.
+                    </div>
+                  @endif
                 </div>
               @else
                 <div style="text-align:center; padding: 24px 0; color: var(--text-muted);">
@@ -469,19 +479,30 @@
             <button type="button" class="filter-tab active" onclick="filterCustomerTasks(this, 'all')">Semua</button>
             <button type="button" class="filter-tab" onclick="filterCustomerTasks(this, 'aktif')">Aktif</button>
             <button type="button" class="filter-tab" onclick="filterCustomerTasks(this, 'done')">Selesai</button>
+            <button type="button" class="filter-tab" onclick="filterCustomerTasks(this, 'cancelled')">Dibatalkan</button>
           </div>
 
           <ul class="task-list-compact" id="penyuruh-task-list">
             @forelse($myOrders as $ord)
-              <li class="task-item-compact" data-status="{{ $ord->status === 'selesai' ? 'done' : 'aktif' }}">
-                <span class="task-status-badge {{ $ord->status === 'selesai' ? 'done' : ($ord->status === 'diambil' ? 'aktif' : 'pending') }}">
-                  {{ $ord->status === 'selesai' ? 'Selesai' : ($ord->status === 'diambil' ? 'Diambil' : 'Menunggu') }}
+              <li class="task-item-compact" data-status="{{ $ord->status === 'selesai' ? 'done' : ($ord->status === 'dibatalkan' ? 'cancelled' : 'aktif') }}">
+                <span class="task-status-badge {{ $ord->status === 'selesai' ? 'done' : ($ord->status === 'diambil' ? 'aktif' : ($ord->status === 'dibatalkan' ? 'cancelled' : 'pending')) }}" style="{{ $ord->status === 'dibatalkan' ? 'background:#fef2f2; color:#dc2626;' : '' }}">
+                  {{ $ord->status === 'selesai' ? 'Selesai' : ($ord->status === 'diambil' ? 'Diambil' : ($ord->status === 'dibatalkan' ? 'Dibatalkan' : 'Menunggu')) }}
                 </span>
                 <div class="task-compact-info">
                   <div class="task-compact-title">{{ $ord->title ?? $ord->service_type }}</div>
                   <div class="task-compact-meta">{{ $ord->created_at->format('d M Y') }} · Mitra: {{ $ord->disuruh->name ?? 'Belum ada' }}</div>
                 </div>
-                <span class="task-compact-price">Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                  <span class="task-compact-price">Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
+                  @if($ord->status === 'menunggu')
+                    <form action="{{ route('orders.cancel', $ord->slug) }}" method="POST" style="margin:0;" onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?');">
+                      @csrf
+                      <button type="submit" class="btn-logout" style="padding:3px 10px; font-size:0.7rem;">Batalkan</button>
+                    </form>
+                  @elseif($ord->status === 'diambil')
+                    <span style="font-size:0.6875rem; color:var(--text-muted);">Batal via Admin</span>
+                  @endif
+                </div>
               </li>
             @empty
               <li style="padding:28px; text-align:center; color:var(--text-muted); font-size:0.875rem;">Belum ada pesanan.</li>
@@ -832,14 +853,22 @@
           <ul class="task-list-compact">
             @forelse($allOrders as $ord)
               <li class="task-item-compact">
-                <span class="task-status-badge {{ $ord->status === 'selesai' ? 'done' : ($ord->status === 'diambil' ? 'aktif' : 'pending') }}">
-                  {{ $ord->status === 'selesai' ? 'Selesai' : ($ord->status === 'diambil' ? 'Diambil' : 'Menunggu') }}
+                <span class="task-status-badge {{ $ord->status === 'selesai' ? 'done' : ($ord->status === 'diambil' ? 'aktif' : ($ord->status === 'dibatalkan' ? 'cancelled' : 'pending')) }}" style="{{ $ord->status === 'dibatalkan' ? 'background:#fef2f2; color:#dc2626;' : '' }}">
+                  {{ $ord->status === 'selesai' ? 'Selesai' : ($ord->status === 'diambil' ? 'Diambil' : ($ord->status === 'dibatalkan' ? 'Dibatalkan' : 'Menunggu')) }}
                 </span>
                 <div class="task-compact-info">
                   <div class="task-compact-title">{{ $ord->title ?? $ord->service_type }}</div>
                   <div class="task-compact-meta">Penyuruh: {{ $ord->penyuruh->name ?? '-' }} · Mitra: {{ $ord->disuruh->name ?? 'Belum ada' }}</div>
                 </div>
-                <span class="task-compact-price">Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                  <span class="task-compact-price">Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
+                  @if(in_array($ord->status, ['menunggu', 'diambil']))
+                    <form action="{{ route('orders.cancel', $ord->slug) }}" method="POST" style="margin:0;" onsubmit="return confirm('Admin: yakin ingin membatalkan pesanan ini?');">
+                      @csrf
+                      <button type="submit" class="btn-logout" style="padding:3px 10px; font-size:0.7rem;">Batalkan (Admin)</button>
+                    </form>
+                  @endif
+                </div>
               </li>
             @empty
               <li style="padding:28px; text-align:center; color:var(--text-muted);">Belum ada pesanan di platform.</li>

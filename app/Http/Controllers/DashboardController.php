@@ -246,6 +246,9 @@ class DashboardController extends Controller
             if (!$order) {
                 return ['type' => 'error', 'msg' => 'Order tidak ditemukan.'];
             }
+            if ($order->status === 'dibatalkan') {
+                return ['type' => 'error', 'msg' => 'Order yang sudah dibatalkan tidak dapat diselesaikan.'];
+            }
             if ($order->status === 'selesai') {
                 return ['type' => 'success', 'msg' => 'Tugas suruh ini sudah diselesaikan sebelumnya.'];
             }
@@ -256,6 +259,56 @@ class DashboardController extends Controller
             ]);
 
             return ['type' => 'success', 'msg' => 'Tugas suruh telah diselesaikan.'];
+        });
+
+        return redirect()->back()->with($result['type'], $result['msg']);
+    }
+
+    /**
+     * Batalkan order:
+     * - Penyuruh hanya boleh membatalkan saat status masih 'menunggu' (belum diambil mitra).
+     * - Jika sudah 'diambil' oleh mitra, hanya Admin yang dapat membatalkan.
+     */
+    public function cancelOrder($slug)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $target = $this->findBySlugOrId(Order::class, (string) $slug);
+        if (!$target) {
+            return redirect()->back()->with('error', 'Order tidak ditemukan.');
+        }
+
+        $result = DB::transaction(function () use ($target, $user) {
+            $order = Order::where('id', $target->id)->lockForUpdate()->first();
+            if (!$order) {
+                return ['type' => 'error', 'msg' => 'Order tidak ditemukan.'];
+            }
+            if ($order->status === 'dibatalkan') {
+                return ['type' => 'success', 'msg' => 'Pesanan ini sudah dibatalkan sebelumnya.'];
+            }
+            if ($order->status === 'selesai') {
+                return ['type' => 'error', 'msg' => 'Pesanan yang sudah selesai tidak dapat dibatalkan.'];
+            }
+
+            $isAdmin = $user->role === 'admin';
+            $isOwner = (int) $order->penyuruh_id === (int) $user->id;
+
+            if ($order->status === 'diambil' && !$isAdmin) {
+                return ['type' => 'error', 'msg' => 'Pesanan sudah diambil oleh mitra. Hanya Admin yang dapat membatalkan pesanan ini.'];
+            }
+
+            if ($order->status === 'menunggu' && !$isOwner && !$isAdmin) {
+                return ['type' => 'error', 'msg' => 'Anda tidak memiliki izin untuk membatalkan pesanan ini.'];
+            }
+
+            $order->update([
+                'status' => 'dibatalkan',
+            ]);
+
+            return ['type' => 'success', 'msg' => 'Pesanan berhasil dibatalkan.'];
         });
 
         return redirect()->back()->with($result['type'], $result['msg']);

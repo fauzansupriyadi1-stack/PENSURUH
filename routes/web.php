@@ -47,6 +47,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/orders', [DashboardController::class, 'createOrder'])->name('orders.create');
     Route::post('/orders/{slug}/take', [DashboardController::class, 'takeOrder'])->name('orders.take');
     Route::post('/orders/{slug}/complete', [DashboardController::class, 'completeOrder'])->name('orders.complete');
+    Route::post('/orders/{slug}/cancel', [DashboardController::class, 'cancelOrder'])->name('orders.cancel');
     Route::post('/dashboard/users/{slug}/role', [DashboardController::class, 'updateUserRole'])->name('users.update-role');
 });
 
