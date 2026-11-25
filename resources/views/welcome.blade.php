@@ -235,14 +235,14 @@
                     />
                     <!-- Overlay White Pill Button with Black Circle Arrow ↗ -->
                     <div class="absolute inset-x-0 bottom-4 flex justify-center px-4">
-                        <button onclick="openBookingService('Antar Barang / Belanja')" class="min-w-[82px] sm:min-w-[90px] h-8 sm:h-9 bg-white hover:bg-gray-50 rounded-full shadow-md flex items-center justify-between pl-3.5 pr-1 gap-2 transition-all active:scale-95 cursor-pointer">
+                        <a href="{{ auth()->check() ? '/dashboard' : '/login' }}" class="min-w-[82px] sm:min-w-[90px] h-8 sm:h-9 bg-white hover:bg-gray-50 rounded-full shadow-md flex items-center justify-between pl-3.5 pr-1 gap-2 transition-all active:scale-95 cursor-pointer">
                             <span class="text-[11px] sm:text-xs font-bold text-gray-900 tracking-tight">Lihat</span>
                             <span class="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-black text-white flex items-center justify-center flex-shrink-0">
                                 <svg class="w-3 sm:w-3.5 h-3 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7V17"/>
                                 </svg>
                             </span>
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -256,14 +256,14 @@
                     />
                     <!-- Overlay White Pill Button with Black Circle Arrow ↗ -->
                     <div class="absolute inset-x-0 bottom-4 flex justify-center px-4">
-                        <button onclick="openBookingService('Merawat Tanaman')" class="min-w-[82px] sm:min-w-[90px] h-8 sm:h-9 bg-white hover:bg-gray-50 rounded-full shadow-md flex items-center justify-between pl-3.5 pr-1 gap-2 transition-all active:scale-95 cursor-pointer">
+                        <a href="{{ auth()->check() ? '/dashboard' : '/login' }}" class="min-w-[82px] sm:min-w-[90px] h-8 sm:h-9 bg-white hover:bg-gray-50 rounded-full shadow-md flex items-center justify-between pl-3.5 pr-1 gap-2 transition-all active:scale-95 cursor-pointer">
                             <span class="text-[11px] sm:text-xs font-bold text-gray-900 tracking-tight">Lihat</span>
                             <span class="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-black text-white flex items-center justify-center flex-shrink-0">
                                 <svg class="w-3 sm:w-3.5 h-3 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7V17"/>
                                 </svg>
                             </span>
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -277,14 +277,14 @@
                     />
                     <!-- Overlay White Pill Button with Black Circle Arrow ↗ -->
                     <div class="absolute inset-x-0 bottom-4 flex justify-center px-4">
-                        <button onclick="openBookingService('Teman Ngobrol')" class="min-w-[82px] sm:min-w-[90px] h-8 sm:h-9 bg-white hover:bg-gray-50 rounded-full shadow-md flex items-center justify-between pl-3.5 pr-1 gap-2 transition-all active:scale-95 cursor-pointer">
+                        <a href="{{ auth()->check() ? '/dashboard' : '/login' }}" class="min-w-[82px] sm:min-w-[90px] h-8 sm:h-9 bg-white hover:bg-gray-50 rounded-full shadow-md flex items-center justify-between pl-3.5 pr-1 gap-2 transition-all active:scale-95 cursor-pointer">
                             <span class="text-[11px] sm:text-xs font-bold text-gray-900 tracking-tight">Lihat</span>
                             <span class="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-black text-white flex items-center justify-center flex-shrink-0">
                                 <svg class="w-3 sm:w-3.5 h-3 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7V17"/>
                                 </svg>
                             </span>
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -298,14 +298,14 @@
                     />
                     <!-- Overlay White Pill Button with Black Circle Arrow ↗ -->
                     <div class="absolute inset-x-0 bottom-4 flex justify-center px-4">
-                        <button onclick="openBookingService('Antar Dokumen / Paket')" class="min-w-[82px] sm:min-w-[90px] h-8 sm:h-9 bg-white hover:bg-gray-50 rounded-full shadow-md flex items-center justify-between pl-3.5 pr-1 gap-2 transition-all active:scale-95 cursor-pointer">
+                        <a href="{{ auth()->check() ? '/dashboard' : '/login' }}" class="min-w-[82px] sm:min-w-[90px] h-8 sm:h-9 bg-white hover:bg-gray-50 rounded-full shadow-md flex items-center justify-between pl-3.5 pr-1 gap-2 transition-all active:scale-95 cursor-pointer">
                             <span class="text-[11px] sm:text-xs font-bold text-gray-900 tracking-tight">Lihat</span>
                             <span class="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-black text-white flex items-center justify-center flex-shrink-0">
                                 <svg class="w-3 sm:w-3.5 h-3 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7V17"/>
                                 </svg>
                             </span>
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -319,14 +319,14 @@
                     />
                     <!-- Overlay White Pill Button with Black Circle Arrow ↗ -->
                     <div class="absolute inset-x-0 bottom-4 flex justify-center px-4">
-                        <button onclick="openBookingService('Bersih-bersih Rumah')" class="min-w-[82px] sm:min-w-[90px] h-8 sm:h-9 bg-white hover:bg-gray-50 rounded-full shadow-md flex items-center justify-between pl-3.5 pr-1 gap-2 transition-all active:scale-95 cursor-pointer">
+                        <a href="{{ auth()->check() ? '/dashboard' : '/login' }}" class="min-w-[82px] sm:min-w-[90px] h-8 sm:h-9 bg-white hover:bg-gray-50 rounded-full shadow-md flex items-center justify-between pl-3.5 pr-1 gap-2 transition-all active:scale-95 cursor-pointer">
                             <span class="text-[11px] sm:text-xs font-bold text-gray-900 tracking-tight">Lihat</span>
                             <span class="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-black text-white flex items-center justify-center flex-shrink-0">
                                 <svg class="w-3 sm:w-3.5 h-3 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7V17"/>
                                 </svg>
                             </span>
-                        </button>
+                        </a>
                     </div>
                 </div>
 
