@@ -637,47 +637,64 @@
         <div class="grid-2">
           <!-- Order Masuk -->
           <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Orderan Masuk di Sekitarmu</h3>
-              <span style="font-size:0.75rem; color:var(--accent-blue); font-weight:600;">Radius 3 km</span>
+            <div class="card-header" style="flex-wrap:wrap; gap:8px;">
+              <div>
+                <h3 class="card-title">Orderan Masuk di Sekitarmu</h3>
+                <div id="mitra-nearest-status-badge" style="font-size:0.75rem; color:#059669; font-weight:700; margin-top:2px; display:flex; align-items:center; gap:6px;">
+                  <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
+                  <span>📍 Mendeteksi orderan terdekat...</span>
+                </div>
+              </div>
+              <button type="button" class="location-chip" onclick="detectMitraLocationAndSort(true)" style="background:#ffffff; border-color:#0471fc; color:#0471fc; font-weight:600; font-size:0.75rem;">
+                🔄 Perbarui GPS &amp; Jarak
+              </button>
             </div>
 
-            @forelse($openOrders->take(5) as $ord)
-              <div class="incoming-order-card">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px;">
-                  <strong style="font-size:0.9375rem;">{{ $ord->title ?? $ord->service_type }}</strong>
-                  <span style="font-weight:800; color:var(--accent-green); white-space:nowrap;">+Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
+            <div class="incoming-orders-container" id="mitra-incoming-orders-list">
+              @forelse($openOrders as $ord)
+                <div class="incoming-order-card"
+                     data-order-id="{{ $ord->id }}"
+                     data-lat="{{ $ord->pickup_lat ?? '' }}"
+                     data-lng="{{ $ord->pickup_lng ?? '' }}"
+                     data-created="{{ $ord->created_at ? $ord->created_at->timestamp : 0 }}">
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px;">
+                    <div>
+                      <strong style="font-size:0.9375rem;">{{ $ord->title ?? $ord->service_type }}</strong>
+                      <span class="order-dist-badge" style="display:none; margin-left:6px; font-size:0.6875rem; font-weight:700; color:#0471fc; background:#eff6ff; border:1px solid #bfdbfe; padding:2px 8px; border-radius:9999px;"></span>
+                    </div>
+                    <span style="font-weight:800; color:var(--accent-green); white-space:nowrap;">+Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
+                  </div>
+                  <div style="font-size:0.8125rem; color:var(--text-secondary); margin-bottom:10px;">
+                    {{ $ord->pickup_location ?? 'Lokasi Tugas' }} → {{ $ord->destination_location ?? 'Tujuan' }}
+                    @if($ord->pickup_lat && $ord->pickup_lng)
+                      <span style="display:inline-block; margin-left:4px; font-size:0.6875rem; font-weight:700; color:#059669; background:#ecfdf5; padding:1px 7px; border-radius:9999px;">Pin Peta Ada</span>
+                    @endif
+                  </div>
+                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button
+                      type="button"
+                      class="btn btn-outline"
+                      style="flex:1; min-width:135px;"
+                      data-title="{{ $ord->title ?? $ord->service_type }}"
+                      data-pickup="{{ $ord->pickup_location ?? 'Lokasi Tugas' }}"
+                      data-dropoff="{{ $ord->destination_location ?? '' }}"
+                      data-lat="{{ $ord->pickup_lat ?? '' }}"
+                      data-lng="{{ $ord->pickup_lng ?? '' }}"
+                      data-dest-lat="{{ $ord->destination_lat ?? '' }}"
+                      data-dest-lng="{{ $ord->destination_lng ?? '' }}"
+                      onclick="openRouteMapModal(this)">Lihat Lokasi &amp; Rute</button>
+                    <form action="{{ Route::has('orders.take') ? route('orders.take', $ord->slug ?? $ord->id) : url('/orders/' . ($ord->slug ?? $ord->id) . '/take') }}" method="POST" style="flex:1; min-width:135px; margin:0;">
+                      @csrf
+                      <button type="submit" class="btn btn-primary" style="width:100%;">Ambil Order Ini</button>
+                    </form>
+                  </div>
                 </div>
-                <div style="font-size:0.8125rem; color:var(--text-secondary); margin-bottom:10px;">
-                  {{ $ord->pickup_location ?? 'Lokasi Tugas' }} → {{ $ord->destination_location ?? 'Tujuan' }}
-                  @if($ord->pickup_lat && $ord->pickup_lng)
-                    <span style="display:inline-block; margin-left:4px; font-size:0.6875rem; font-weight:700; color:#059669; background:#ecfdf5; padding:1px 7px; border-radius:9999px;">Pin Peta Ada</span>
-                  @endif
+              @empty
+                <div style="text-align:center; padding:28px; color:var(--text-muted); font-size:0.875rem;">
+                  Tidak ada orderan masuk saat ini.<br>Tetap online untuk menerima tugas!
                 </div>
-                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                  <button
-                    type="button"
-                    class="btn btn-outline"
-                    style="flex:1; min-width:135px;"
-                    data-title="{{ $ord->title ?? $ord->service_type }}"
-                    data-pickup="{{ $ord->pickup_location ?? 'Lokasi Tugas' }}"
-                    data-dropoff="{{ $ord->destination_location ?? '' }}"
-                    data-lat="{{ $ord->pickup_lat ?? '' }}"
-                    data-lng="{{ $ord->pickup_lng ?? '' }}"
-                    data-dest-lat="{{ $ord->destination_lat ?? '' }}"
-                    data-dest-lng="{{ $ord->destination_lng ?? '' }}"
-                    onclick="openRouteMapModal(this)">Lihat Lokasi &amp; Rute</button>
-                  <form action="{{ Route::has('orders.take') ? route('orders.take', $ord->slug ?? $ord->id) : url('/orders/' . ($ord->slug ?? $ord->id) . '/take') }}" method="POST" style="flex:1; min-width:135px; margin:0;">
-                    @csrf
-                    <button type="submit" class="btn btn-primary" style="width:100%;">Ambil Order Ini</button>
-                  </form>
-                </div>
-              </div>
-            @empty
-              <div style="text-align:center; padding:28px; color:var(--text-muted); font-size:0.875rem;">
-                Tidak ada orderan masuk saat ini.<br>Tetap online untuk menerima tugas!
-              </div>
-            @endforelse
+              @endforelse
+            </div>
           </div>
 
           <!-- Tugas Yang Harus Dikerjakan -->
@@ -929,23 +946,34 @@
             </div>
           </div>
 
-          <div class="filter-tabs" data-filter-target="admin-orders-list">
+          <div class="filter-tabs" data-filter-target="admin-orders-list" style="display:flex; flex-wrap:wrap; align-items:center; gap:6px;">
             <button type="button" class="filter-tab active" onclick="setListStatusFilter(this, 'admin-orders-list', 'all')">Semua</button>
             <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'admin-orders-list', 'menunggu')">Menunggu</button>
             <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'admin-orders-list', 'diambil')">Diambil</button>
             <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'admin-orders-list', 'selesai')">Selesai</button>
             <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'admin-orders-list', 'dibatalkan')">Dibatalkan</button>
+            <button type="button" class="filter-tab" id="btn-admin-sort-nearest" onclick="toggleAdminOrderSort(this)" style="margin-left:auto; font-weight:700; color:var(--accent-blue); background:#eff6ff; border-color:#bfdbfe;">
+              📍 Urutkan Terdekat
+            </button>
           </div>
 
           <ul class="task-list-compact" id="admin-orders-list" data-active-status="all">
             @forelse($allOrders as $ord)
-              <li class="task-item-compact" data-status="{{ $ord->status }}" data-search="{{ strtolower('#ps-' . $ord->id . ' ' . ($ord->title ?? $ord->service_type) . ' ' . ($ord->penyuruh->name ?? '') . ' ' . ($ord->disuruh->name ?? '')) }}">
+              <li class="task-item-compact"
+                  data-lat="{{ $ord->pickup_lat ?? '' }}"
+                  data-lng="{{ $ord->pickup_lng ?? '' }}"
+                  data-created="{{ $ord->created_at ? $ord->created_at->timestamp : 0 }}"
+                  data-status="{{ $ord->status }}"
+                  data-search="{{ strtolower('#ps-' . $ord->id . ' ' . ($ord->title ?? $ord->service_type) . ' ' . ($ord->penyuruh->name ?? '') . ' ' . ($ord->disuruh->name ?? '')) }}">
                 <span class="task-status-badge {{ $ord->status === 'selesai' ? 'done' : ($ord->status === 'diambil' ? 'aktif' : ($ord->status === 'dibatalkan' ? 'cancelled' : 'pending')) }}" style="{{ $ord->status === 'dibatalkan' ? 'background:#fef2f2; color:#dc2626;' : '' }}">
                   {{ $ord->status === 'selesai' ? 'Selesai' : ($ord->status === 'diambil' ? 'Diambil' : ($ord->status === 'dibatalkan' ? 'Dibatalkan' : 'Menunggu')) }}
                 </span>
                 <div class="task-compact-info">
-                  <div class="task-compact-title">{{ $ord->title ?? $ord->service_type }}</div>
-                  <div class="task-compact-meta">Penyuruh: {{ $ord->penyuruh->name ?? '-' }} · Mitra: {{ $ord->disuruh->name ?? 'Belum ada' }}</div>
+                  <div class="task-compact-title">
+                    {{ $ord->title ?? $ord->service_type }}
+                    <span class="admin-dist-badge" style="display:none; font-size:0.6875rem; font-weight:700; color:#0471fc; background:#eff6ff; border:1px solid #bfdbfe; padding:2px 7px; border-radius:9999px; margin-left:6px;"></span>
+                  </div>
+                  <div class="task-compact-meta">Penyuruh: {{ $ord->penyuruh->name ?? '-' }} · Mitra: {{ $ord->disuruh->name ?? 'Belum ada' }} · {{ $ord->pickup_location ?? '-' }}</div>
                 </div>
                 <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
                   <span class="task-compact-price">Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
@@ -2086,6 +2114,173 @@
       if (notes) notes.value = btn.dataset.notes || '';
       document.getElementById('order-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+
+    // ==========================================
+    // AUTO-SORT ORDERAN TERDEKAT (MITRA & ADMIN)
+    // ==========================================
+    const DEFAULT_REF_LAT = -7.275847; // Kampus PENS Sukolilo Surabaya
+    const DEFAULT_REF_LNG = 112.793755;
+    let userCurrentGpsLat = null;
+    let userCurrentGpsLng = null;
+    let adminSortNearestActive = true;
+
+    function calcHaversineDistanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Radius bumi dalam km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    function formatDistanceText(km) {
+      if (km < 1) {
+        return Math.round(km * 1000) + ' m';
+      }
+      return km.toFixed(1) + ' km';
+    }
+
+    function detectMitraLocationAndSort(forceAlert) {
+      const statusBadge = document.getElementById('mitra-nearest-status-badge');
+      if (statusBadge) {
+        statusBadge.innerHTML = '<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#f59e0b;"></span><span>📍 Mengukur jarak GPS...</span>';
+      }
+
+      // Coba urutkan dulu dengan referensi default langsung agar instan tanpa nunggu GPS
+      applyMitraNearestSorting(DEFAULT_REF_LAT, DEFAULT_REF_LNG, false);
+      applyAdminNearestSorting(DEFAULT_REF_LAT, DEFAULT_REF_LNG, false);
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(pos) {
+            userCurrentGpsLat = pos.coords.latitude;
+            userCurrentGpsLng = pos.coords.longitude;
+            applyMitraNearestSorting(userCurrentGpsLat, userCurrentGpsLng, true);
+            applyAdminNearestSorting(userCurrentGpsLat, userCurrentGpsLng, true);
+            if (forceAlert) showToast('Lokasi GPS aktif! Orderan telah diurutkan dari yang terdekat.', 'success');
+          },
+          function(err) {
+            applyMitraNearestSorting(DEFAULT_REF_LAT, DEFAULT_REF_LNG, false);
+            applyAdminNearestSorting(DEFAULT_REF_LAT, DEFAULT_REF_LNG, false);
+            if (forceAlert) showToast('GPS belum diizinkan. Menggunakan referensi area Kampus PENS.', 'info');
+          },
+          { enableHighAccuracy: true, timeout: 6000 }
+        );
+      }
+    }
+
+    function applyMitraNearestSorting(centerLat, centerLng, isRealGps) {
+      const container = document.getElementById('mitra-incoming-orders-list');
+      if (!container) return;
+
+      const cards = Array.from(container.querySelectorAll('.incoming-order-card'));
+      if (cards.length === 0) return;
+
+      cards.forEach(card => {
+        const rawLat = parseFloat(card.dataset.lat || '');
+        const rawLng = parseFloat(card.dataset.lng || '');
+        const badge = card.querySelector('.order-dist-badge');
+
+        if (!isNaN(rawLat) && !isNaN(rawLng)) {
+          const distKm = calcHaversineDistanceKm(centerLat, centerLng, rawLat, rawLng);
+          card.dataset.distKm = distKm;
+          if (badge) {
+            badge.style.display = 'inline-block';
+            badge.textContent = '📍 ' + formatDistanceText(distKm);
+          }
+        } else {
+          card.dataset.distKm = 999999;
+          if (badge) badge.style.display = 'none';
+        }
+      });
+
+      // Urutkan kartu: Jarak terdekat berada di paling atas
+      cards.sort((a, b) => {
+        const distA = parseFloat(a.dataset.distKm || 999999);
+        const distB = parseFloat(b.dataset.distKm || 999999);
+        if (distA !== distB) return distA - distB;
+        return (parseInt(b.dataset.created, 10) || 0) - (parseInt(a.dataset.created, 10) || 0);
+      });
+
+      cards.forEach(card => container.appendChild(card));
+
+      const statusBadge = document.getElementById('mitra-nearest-status-badge');
+      if (statusBadge) {
+        statusBadge.innerHTML = isRealGps
+          ? '<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span><span>📍 Otomatis Terdekat dari Lokasimu (GPS Aktif)</span>'
+          : '<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#3b82f6;"></span><span>📍 Terurut Terdekat dari Area PENS</span>';
+      }
+    }
+
+    function applyAdminNearestSorting(centerLat, centerLng, isRealGps) {
+      const list = document.getElementById('admin-orders-list');
+      if (!list) return;
+
+      const items = Array.from(list.querySelectorAll('li.task-item-compact'));
+      if (items.length === 0) return;
+
+      items.forEach(item => {
+        const rawLat = parseFloat(item.dataset.lat || '');
+        const rawLng = parseFloat(item.dataset.lng || '');
+        const badge = item.querySelector('.admin-dist-badge');
+
+        if (!isNaN(rawLat) && !isNaN(rawLng)) {
+          const distKm = calcHaversineDistanceKm(centerLat, centerLng, rawLat, rawLng);
+          item.dataset.distKm = distKm;
+          if (badge) {
+            badge.style.display = 'inline-block';
+            badge.textContent = '📍 ' + formatDistanceText(distKm);
+          }
+        } else {
+          item.dataset.distKm = 999999;
+          if (badge) badge.style.display = 'none';
+        }
+      });
+
+      if (adminSortNearestActive) {
+        // Urutkan pesanan admin: yang terdekat berada paling atas
+        items.sort((a, b) => {
+          const distA = parseFloat(a.dataset.distKm || 999999);
+          const distB = parseFloat(b.dataset.distKm || 999999);
+          if (distA !== distB) return distA - distB;
+          return (parseInt(b.dataset.created, 10) || 0) - (parseInt(a.dataset.created, 10) || 0);
+        });
+        items.forEach(item => list.appendChild(item));
+      }
+    }
+
+    function toggleAdminOrderSort(btn) {
+      adminSortNearestActive = !adminSortNearestActive;
+      const list = document.getElementById('admin-orders-list');
+      if (!list) return;
+
+      const items = Array.from(list.querySelectorAll('li.task-item-compact'));
+      if (adminSortNearestActive) {
+        if (btn) {
+          btn.classList.add('active');
+          btn.textContent = '📍 Terurut Terdekat';
+        }
+        const lat = userCurrentGpsLat || DEFAULT_REF_LAT;
+        const lng = userCurrentGpsLng || DEFAULT_REF_LNG;
+        applyAdminNearestSorting(lat, lng, !!userCurrentGpsLat);
+        showToast('Pesanan diurutkan berdasarkan jarak terdekat.', 'info');
+      } else {
+        if (btn) {
+          btn.classList.remove('active');
+          btn.textContent = '⏱️ Urutkan Terbaru';
+        }
+        items.sort((a, b) => (parseInt(b.dataset.created, 10) || 0) - (parseInt(a.dataset.created, 10) || 0));
+        items.forEach(item => list.appendChild(item));
+        showToast('Pesanan diurutkan berdasarkan waktu terbaru.', 'info');
+      }
+    }
+
+    // Jalankan auto-detect terdekat otomatis saat halaman selesai dimuat
+    document.addEventListener('DOMContentLoaded', function() {
+      detectMitraLocationAndSort(false);
+    });
   </script>
 </body>
 </html>
