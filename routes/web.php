@@ -58,4 +58,7 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleC
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/logout', function () {
+    return redirect('/');
+});
 
