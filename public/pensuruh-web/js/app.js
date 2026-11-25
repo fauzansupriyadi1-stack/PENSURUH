@@ -63,55 +63,31 @@ if (usernameInput) {
 
 // ── Google Sign-In (Demo) ──
 function googleSignIn() {
-  window.location.href = 'dashboard.html?role=penyuruh';
+  window.location.href = '/auth/google';
 }
 
 function googleSignUp() {
-  var selectedRole = document.querySelector('.role-option.active');
-  var role = selectedRole ? selectedRole.dataset.role : 'customer';
-  window.location.href = 'dashboard.html?role=' + (role === 'mitra' ? 'disuruh' : 'penyuruh');
+  window.location.href = '/auth/google';
 }
 
 // ── Form Submissions (Auth Demo) ──
-var loginForm = document.getElementById('loginForm');
-if (loginForm) {
-  loginForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    var email = document.getElementById('login-email').value.trim();
-    var password = document.getElementById('login-password').value;
-
-    if (!email) {
-      showFormError('login-email', 'Masukkan nomor WhatsApp atau email.');
-      return;
-    }
-    if (!password) {
-      showFormError('login-password', 'Masukkan password.');
-      return;
-    }
-
-    window.location.href = 'dashboard.html?role=penyuruh';
+// Form login dan register sudah ditangani oleh Laravel backend (POST action)
+// Listener form submission di bawah dinonaktifkan agar tidak conflict dengan HTML form action
+/*
+var loginFormDemo = document.getElementById('loginForm');
+if (loginFormDemo) {
+  loginFormDemo.addEventListener('submit', function(e) {
+    e.preventDefault(); // DINONAKTIFKAN - biarkan form submit ke Laravel
   });
 }
 
-var registerForm = document.getElementById('registerForm');
-if (registerForm) {
-  registerForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    var name = document.getElementById('reg-name').value.trim();
-    var username = document.getElementById('reg-username').value.trim();
-    var phone = document.getElementById('reg-phone').value.trim();
-    var password = document.getElementById('reg-password').value;
-
-    if (!name) { showFormError('reg-name', 'Masukkan nama lengkap.'); return; }
-    if (!username) { showFormError('reg-username', 'Masukkan username.'); return; }
-    if (!phone) { showFormError('reg-phone', 'Masukkan nomor WhatsApp.'); return; }
-    if (!password || password.length < 8) { showFormError('reg-password', 'Password minimal 8 karakter.'); return; }
-
-    var selectedRole = document.querySelector('.role-option.active');
-    var role = selectedRole ? selectedRole.dataset.role : 'customer';
-    window.location.href = 'dashboard.html?role=' + (role === 'mitra' ? 'disuruh' : 'penyuruh');
+var registerFormDemo = document.getElementById('registerForm');
+if (registerFormDemo) {
+  registerFormDemo.addEventListener('submit', function(e) {
+    e.preventDefault(); // DINONAKTIFKAN - biarkan form submit ke Laravel
   });
 }
+*/
 
 // ── Form Error Display ──
 function showFormError(inputId, message) {
@@ -163,7 +139,7 @@ document.querySelectorAll('.dashboard-tab-btn').forEach(function(btn) {
 
 // ── Dashboard: Role Mode Switching ──
 function switchRole(role) {
-  window.location.href = 'dashboard.html?role=' + role;
+  window.location.href = '/dashboard/switch-role/' + role;
 }
 
 document.querySelectorAll('.mode-link').forEach(function(link) {
@@ -174,6 +150,12 @@ document.querySelectorAll('.mode-link').forEach(function(link) {
 });
 
 function getCurrentRole() {
+  // Baca dari data attribute yang diset oleh Laravel (Blade), bukan dari URL
+  var body = document.getElementById('dashboard-page');
+  if (body && body.dataset.activeRole) {
+    return body.dataset.activeRole;
+  }
+  // Fallback ke URL jika ada (kompatibilitas)
   var params = new URLSearchParams(window.location.search);
   return params.get('role') || 'penyuruh';
 }
