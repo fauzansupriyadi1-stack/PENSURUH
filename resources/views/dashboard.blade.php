@@ -150,7 +150,7 @@
                 <span style="font-family:monospace; opacity:0.85;">PS-{{ str_pad($user->id ?? 1, 5, '0', STR_PAD_LEFT) }}</span>
               </div>
               <div class="gopay-balance-value">
-                <span class="wallet-balance-amount" id="penyuruh-saldo" data-value="Rp 1.450.000">Rp 1.450.000</span>
+                <span class="wallet-balance-amount" id="penyuruh-saldo" data-value="Rp {{ number_format($user->balance ?? 500000, 0, ',', '.') }}">Rp {{ number_format($user->balance ?? 500000, 0, ',', '.') }}</span>
                 <button type="button" class="eye-toggle" onclick="toggleBalance()" aria-label="Sembunyikan saldo">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
@@ -1214,6 +1214,114 @@
       <div style="margin-top:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
         <div id="admin-detail-suspend-container"></div>
         <button type="button" class="btn btn-outline" onclick="closeAdminUserDetail()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- MODAL: ISI SALDO QRIS (DOKU PAYMENT GATEWAY) -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="modal-overlay" id="qris-topup-modal" role="dialog" aria-modal="true" aria-labelledby="qris-topup-title">
+    <div class="modal-box" style="max-width:520px;">
+      <div class="modal-header">
+        <div>
+          <div style="font-size:0.6875rem; font-weight:700; color:var(--accent-blue); text-transform:uppercase; letter-spacing:0.04em;">DOKU Payment Gateway</div>
+          <h3 id="qris-topup-title" style="font-size:1.125rem; font-weight:800; margin-top:2px;">Isi Saldo via QRIS</h3>
+        </div>
+        <button type="button" class="modal-close" onclick="closeTopUpModal()" aria-label="Tutup">✕</button>
+      </div>
+
+      <div id="topup-form-view">
+        <p style="font-size:0.8125rem; color:var(--text-secondary); margin-bottom:14px;">
+          Pilih atau tentukan nominal pengisian saldo dompetmu. Pembayaran mendukung scan QRIS dari semua aplikasi m-banking dan e-wallet.
+        </p>
+
+        <!-- Pilihan Nominal Cepat -->
+        <div style="margin-bottom:14px;">
+          <label class="form-label" style="margin-bottom:6px;">Pilihan Nominal Cepat</label>
+          <div class="location-chips" id="topup-quick-chips" style="gap:8px;">
+            <button type="button" class="location-chip" onclick="setTopUpAmount(20000, this)">Rp 20.000</button>
+            <button type="button" class="location-chip" onclick="setTopUpAmount(50000, this)">Rp 50.000</button>
+            <button type="button" class="location-chip active" style="background:#0471fc; color:#ffffff; border-color:#0471fc;" onclick="setTopUpAmount(100000, this)">Rp 100.000</button>
+            <button type="button" class="location-chip" onclick="setTopUpAmount(250000, this)">Rp 250.000</button>
+            <button type="button" class="location-chip" onclick="setTopUpAmount(500000, this)">Rp 500.000</button>
+          </div>
+        </div>
+
+        <!-- Input Nominal -->
+        <div class="form-group" style="margin-bottom:14px;">
+          <label class="form-label" for="topup-amount-input">Nominal Isi Saldo (Rp)</label>
+          <input type="number" id="topup-amount-input" class="form-input" style="font-size:1.125rem; font-weight:700; color:var(--accent-blue);" min="10000" step="5000" value="100000" placeholder="Minimal Rp 10.000">
+          <small style="color:var(--text-muted); font-size:0.75rem;">Minimal pengisian: Rp 10.000</small>
+        </div>
+
+        <!-- Info Metode Pembayaran -->
+        <div style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:0.75rem; font-weight:700; color:var(--text-primary);">Metode Pembayaran:</span>
+            <span style="font-size:0.75rem; font-weight:800; color:#dc2626; background:#fee2e2; padding:2px 8px; border-radius:6px;">QRIS Real-Time</span>
+          </div>
+          <div style="font-size:0.75rem; color:var(--text-secondary); line-height:1.4;">
+            Mendukung <strong>BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana, ShopeePay, LinkAja</strong>, dan seluruh aplikasi yang memiliki fitur scan QRIS.
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="btn-proceed-qris" style="width:100%; justify-content:center; padding:11px 16px; font-size:0.9375rem;" onclick="processDokuQrisTopUp()">
+          Bayar via QRIS Sekarang
+        </button>
+      </div>
+
+      <!-- Tampilan Pembayaran QRIS Aktif -->
+      <div id="topup-payment-view" style="display:none; text-align:center; padding:10px 0;">
+        <div id="topup-payment-loading" style="padding:20px 0;">
+          <div style="width:40px; height:40px; border:3px solid #bfdbfe; border-top-color:#0471fc; border-radius:50%; margin:0 auto 12px; animation:spin 0.8s linear infinite;"></div>
+          <div style="font-weight:700; font-size:0.9375rem;">Menghubungkan ke Gateway DOKU...</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">Membuat tagihan QRIS resmi</div>
+        </div>
+
+        <div id="topup-payment-ready" style="display:none;">
+          <div style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:12px; padding:12px; margin-bottom:14px; text-align:left;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.75rem; color:#059669; font-weight:700;">Nomor Tagihan:</span>
+              <span id="topup-inv-display" style="font-family:monospace; font-weight:700; font-size:0.8125rem;">-</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+              <span style="font-size:0.75rem; color:#059669; font-weight:700;">Total Pembayaran:</span>
+              <span id="topup-amount-display" style="font-size:1.125rem; font-weight:800; color:#059669;">Rp 0</span>
+            </div>
+          </div>
+
+          <p style="font-size:0.8125rem; color:var(--text-secondary); margin-bottom:14px;">
+            Halaman QRIS DOKU telah dibuka di tab baru. Silakan scan QRIS untuk menyelesaikan pembayaran.
+          </p>
+
+          <a href="#" id="topup-doku-link" target="_blank" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px 18px; font-size:0.9375rem; text-decoration:none; margin-bottom:10px;">
+            🚀 Buka Halaman QRIS DOKU
+          </a>
+
+          <div style="display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.75rem; color:#059669; font-weight:600; margin-top:10px;" id="topup-polling-status">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
+            <span>Menunggu konfirmasi pembayaran QRIS...</span>
+          </div>
+
+          <div style="margin-top:16px; padding-top:14px; border-top:1px dashed var(--border);">
+            <div style="font-size:0.6875rem; color:var(--text-muted); margin-bottom:6px;">Uji Coba Sandbox / Localhost:</div>
+            <a href="#" id="topup-simulate-btn" class="btn btn-outline" style="width:100%; justify-content:center; font-size:0.75rem; padding:6px 12px; color:#0471fc;">
+              ⚡ Simulasi Pembayaran Berhasil (Localhost)
+            </a>
+          </div>
+        </div>
+
+        <div id="topup-payment-success" style="display:none; padding:16px 0;">
+          <div style="width:52px; height:52px; background:#ecfdf5; border:2px solid #10b981; border-radius:50%; color:#059669; font-size:1.75rem; display:flex; align-items:center; justify-content:center; margin:0 auto 12px;">✓</div>
+          <h4 style="font-size:1.125rem; font-weight:800; color:#059669; margin-bottom:4px;">Isi Saldo Berhasil!</h4>
+          <p id="topup-success-msg" style="font-size:0.8125rem; color:var(--text-secondary); margin-bottom:16px;">
+            Saldo dompetmu telah bertambah secara otomatis.
+          </p>
+          <button type="button" class="btn btn-primary" onclick="window.location.reload()" style="width:100%; justify-content:center;">
+            Selesai
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -2317,6 +2425,162 @@
     document.addEventListener('DOMContentLoaded', function() {
       detectMitraLocationAndSort(false);
     });
+
+    // ==========================================
+    // ISI SALDO VIA QRIS DOKU PAYMENT GATEWAY
+    // ==========================================
+    let topUpPollingInterval = null;
+    let activeTopUpInvoice = null;
+
+    function openTopUpModal() {
+      const modal = document.getElementById('qris-topup-modal');
+      if (!modal) return;
+      document.getElementById('topup-form-view').style.display = 'block';
+      document.getElementById('topup-payment-view').style.display = 'none';
+      document.getElementById('topup-payment-loading').style.display = 'block';
+      document.getElementById('topup-payment-ready').style.display = 'none';
+      document.getElementById('topup-payment-success').style.display = 'none';
+      if (topUpPollingInterval) clearInterval(topUpPollingInterval);
+      modal.classList.add('open');
+    }
+
+    function closeTopUpModal() {
+      const modal = document.getElementById('qris-topup-modal');
+      if (modal) modal.classList.remove('open');
+      if (topUpPollingInterval) clearInterval(topUpPollingInterval);
+    }
+
+    document.getElementById('qris-topup-modal')?.addEventListener('click', function(e) {
+      if (e.target === this) closeTopUpModal();
+    });
+
+    function setTopUpAmount(amt, btn) {
+      const input = document.getElementById('topup-amount-input');
+      if (input) input.value = amt;
+      if (btn) {
+        document.querySelectorAll('#topup-quick-chips .location-chip').forEach(b => {
+          b.classList.remove('active');
+          b.style.background = '';
+          b.style.color = '';
+          b.style.borderColor = '';
+        });
+        btn.classList.add('active');
+        btn.style.background = '#0471fc';
+        btn.style.color = '#ffffff';
+        btn.style.borderColor = '#0471fc';
+      }
+    }
+
+    function processDokuQrisTopUp() {
+      const input = document.getElementById('topup-amount-input');
+      const amount = parseFloat(input ? input.value : 0);
+      if (!amount || amount < 10000) {
+        showToast('Minimal pengisian saldo adalah Rp 10.000', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-proceed-qris');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Menghubungkan ke DOKU...';
+      }
+
+      document.getElementById('topup-form-view').style.display = 'none';
+      document.getElementById('topup-payment-view').style.display = 'block';
+      document.getElementById('topup-payment-loading').style.display = 'block';
+      document.getElementById('topup-payment-ready').style.display = 'none';
+      document.getElementById('topup-payment-success').style.display = 'none';
+
+      fetch('/wallet/topup/qris', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ amount: amount })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Bayar via QRIS Sekarang';
+        }
+
+        if (data.success && data.payment_url) {
+          activeTopUpInvoice = data.invoice;
+          document.getElementById('topup-payment-loading').style.display = 'none';
+          document.getElementById('topup-payment-ready').style.display = 'block';
+          document.getElementById('topup-inv-display').textContent = data.invoice;
+          document.getElementById('topup-amount-display').textContent = data.amount_fmt;
+
+          const link = document.getElementById('topup-doku-link');
+          if (link) {
+            link.href = data.payment_url;
+            link.style.display = 'flex';
+          }
+
+          const simBtn = document.getElementById('topup-simulate-btn');
+          if (simBtn && data.simulate_url) simBtn.href = data.simulate_url;
+
+          window.open(data.payment_url, '_blank');
+          startTopUpStatusPolling(data.invoice);
+        } else {
+          activeTopUpInvoice = data.invoice;
+          document.getElementById('topup-payment-loading').style.display = 'none';
+          document.getElementById('topup-payment-ready').style.display = 'block';
+          if (data.invoice) document.getElementById('topup-inv-display').textContent = data.invoice;
+          if (data.amount_fmt) document.getElementById('topup-amount-display').textContent = data.amount_fmt;
+
+          const simBtn = document.getElementById('topup-simulate-btn');
+          if (simBtn && data.simulate_url) simBtn.href = data.simulate_url;
+
+          const link = document.getElementById('topup-doku-link');
+          if (link) link.style.display = 'none';
+
+          document.getElementById('topup-polling-status').textContent = 'Koneksi DOKU: ' + (data.message || 'Gunakan tombol simulasi di bawah untuk pengetesan.');
+          startTopUpStatusPolling(data.invoice);
+        }
+      })
+      .catch(err => {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Bayar via QRIS Sekarang';
+        }
+        showToast('Gagal memproses permintaan QRIS: ' + err.message, 'error');
+        document.getElementById('topup-form-view').style.display = 'block';
+        document.getElementById('topup-payment-view').style.display = 'none';
+      });
+    }
+
+    function startTopUpStatusPolling(invoice) {
+      if (topUpPollingInterval) clearInterval(topUpPollingInterval);
+      if (!invoice) return;
+
+      topUpPollingInterval = setInterval(() => {
+        fetch('/wallet/topup/status/' + invoice, {
+          headers: { 'Accept': 'application/json' }
+        })
+        .then(r => r.json())
+        .then(res => {
+          if (res.success && res.is_paid) {
+            clearInterval(topUpPollingInterval);
+            document.getElementById('topup-payment-ready').style.display = 'none';
+            document.getElementById('topup-payment-success').style.display = 'block';
+            document.getElementById('topup-success-msg').textContent = 'Saldo sebesar ' + res.amount_fmt + ' berhasil ditambahkan ke dompetmu.';
+
+            const saldoEl = document.getElementById('penyuruh-saldo');
+            if (saldoEl) {
+              saldoEl.textContent = res.balance_fmt;
+              saldoEl.dataset.value = res.balance_fmt;
+            }
+
+            showToast('Top up saldo via QRIS berhasil (' + res.amount_fmt + ')!', 'success');
+          }
+        })
+        .catch(() => {});
+      }, 3000);
+    }
   </script>
 </body>
 </html>

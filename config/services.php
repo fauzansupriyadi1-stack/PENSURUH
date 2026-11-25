@@ -41,4 +41,12 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI', 'http://127.0.0.1:8000/auth/google/callback'),
     ],
 
+    'doku' => [
+        'client_id'     => env('DOKU_CLIENT_ID'),
+        'secret_key'    => env('DOKU_SECRET_KEY'),
+        'api_key'       => env('DOKU_API_KEY'),
+        'is_production' => env('DOKU_IS_PRODUCTION', true),
+        'api_url'       => env('DOKU_API_URL', 'https://api.doku.com'),
+    ],
+
 ];

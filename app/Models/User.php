@@ -22,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'role',
+        'balance',
         'is_suspended',
         'suspended_at',
         'phone',

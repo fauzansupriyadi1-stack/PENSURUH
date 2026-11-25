@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: [
             'logout',
+            'api/payment/doku/notification',
+            'api/doku/notification',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

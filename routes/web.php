@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\WalletController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -50,7 +51,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/orders/{slug}/cancel', [DashboardController::class, 'cancelOrder'])->name('orders.cancel');
     Route::post('/dashboard/users/{slug}/role', [DashboardController::class, 'updateUserRole'])->name('users.update-role');
     Route::post('/dashboard/users/{slug}/suspend', [DashboardController::class, 'toggleSuspendUser'])->name('users.toggle-suspend');
+
+    // Wallet & Isi Saldo via QRIS (DOKU)
+    Route::post('/wallet/topup/qris', [WalletController::class, 'initiateTopUp'])->name('wallet.topup.qris');
+    Route::get('/wallet/topup/status/{invoice}', [WalletController::class, 'checkStatus'])->name('wallet.topup.status');
+    Route::get('/wallet/topup/simulate/{invoice}', [WalletController::class, 'simulatePayment'])->name('wallet.topup.simulate');
 });
+
+// DOKU Webhook Notification (Server-to-Server)
+Route::post('/api/payment/doku/notification', [WalletController::class, 'handleNotification'])->name('doku.notification');
+Route::post('/api/doku/notification', [WalletController::class, 'handleNotification']);
 
 // Google OAuth
 Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle'])->name('auth.google');
