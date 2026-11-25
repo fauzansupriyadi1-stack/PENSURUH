@@ -293,19 +293,21 @@ img { max-width: 100%; display: block; }
 .mobile-subbar {
   display: none;
   border-top: 1px solid var(--border-light);
-  padding: 8px 16px;
-  background: rgba(248, 250, 252, 0.9);
+  padding: 8px 12px;
+  background: rgba(248, 250, 252, 0.95);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.mobile-subbar::-webkit-scrollbar { display: none; }
 
 .mobile-subbar-inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  overflow-x: auto;
-  scrollbar-width: none;
+  gap: 8px;
+  width: max-content;
+  min-width: 100%;
 }
-.mobile-subbar-inner::-webkit-scrollbar { display: none; }
 
 /* ── Main Content ── */
 .main-content {
@@ -1251,19 +1253,89 @@ img { max-width: 100%; display: block; }
 }
 
 @media (max-width: 520px) {
+  .header-inner { padding: 8px 12px; }
   .header-user-block { border-left: none; padding-left: 0; }
   .user-greeting { display: none; }
-  .service-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .service-tile { padding: 12px 6px; border-radius: var(--radius-md); }
-  .service-icon-circle { width: 40px; height: 40px; font-size: 1.25rem; border-radius: 12px; }
-  .service-tile-name { font-size: 0.75rem; }
-  .service-tile-price { font-size: 0.6875rem; }
+  .brand-logo-text { font-size: 1.15rem; }
+  .user-avatar { width: 32px; height: 32px; font-size: 0.75rem; }
 
-  .form-row { grid-template-columns: 1fr; }
-  .stat-cards { grid-template-columns: 1fr; }
+  .mobile-subbar { padding: 6px 10px; }
+  .mobile-subbar .tab-btn { padding: 5px 12px; font-size: 0.75rem; }
+  .mobile-subbar .tab-btn .badge-count { min-width: 16px; height: 16px; font-size: 0.625rem; }
+
+  .main-content { padding: 14px 12px 36px; }
+
+  /* Wallet bar mobile adjustments */
+  .gopay-bar {
+    padding: 16px 14px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 20px;
+    gap: 14px;
+  }
+  .gopay-balance-box {
+    padding: 12px 14px;
+  }
+  .gopay-balance-value {
+    font-size: 1.35rem;
+  }
+  .gopay-mini-stats {
+    gap: 16px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    justify-content: space-around;
+  }
+  .gopay-mini-stat small { font-size: 0.6875rem; }
+  .gopay-mini-stat strong { font-size: 0.9375rem; }
+  .gopay-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    width: 100%;
+  }
+  .gopay-actions .btn-gopay,
+  .gopay-actions .btn-gopay-ghost {
+    padding: 8px 6px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .section-heading h2,
+  .section-heading > span { font-size: 1rem; }
+  .section-heading small { font-size: 0.75rem; }
+
+  .service-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .service-tile {
+    padding: 10px 4px;
+    border-radius: var(--radius-md);
+    gap: 6px;
+  }
+  .service-icon-circle {
+    width: 38px;
+    height: 38px;
+    font-size: 1.15rem;
+    border-radius: 10px;
+  }
+  .service-tile-name { font-size: 0.72rem; }
+  .service-tile-price { font-size: 0.65rem; }
+
+  .card { padding: 16px 14px; border-radius: var(--radius-md); }
+  .card-title { font-size: 0.875rem; }
+
+  .form-row { grid-template-columns: 1fr; gap: 10px; }
+  .form-input { padding: 9px 12px; font-size: 0.8125rem; }
+  .location-chips { gap: 4px; }
+  .location-chip { padding: 4px 8px; font-size: 0.6875rem; }
+
+  .stat-cards { grid-template-columns: 1fr; gap: 10px; }
   .priority-stats { grid-template-columns: 1fr; }
-  .nominal-grid { grid-template-columns: repeat(2, 1fr); }
-  .wallet-balance { font-size: 1.625rem; }
-  .priority-balance { font-size: 1.5rem; }
-  .card { padding: 18px; }
+  .nominal-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .wallet-balance { font-size: 1.5rem; }
+  .priority-balance { font-size: 1.35rem; }
 }
