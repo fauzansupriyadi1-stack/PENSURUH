@@ -7,153 +7,187 @@
   <link rel="icon" type="image/png" href="/images/sources/hero_courier_clean.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/dashboard.css">
-  <style>
-    /* Sinkronisasi font & warna landing page ke dashboard Azzam */
-    :root {
-      --font-main: 'Poppins', 'Plus Jakarta Sans', sans-serif;
-      --accent-blue: #0471fc;
-      --accent-blue-hover: #0060db;
-      --accent-yellow: #f3c903;
-      --accent-green: #10b981;
-    }
-    body, button, input, select, textarea {
-      font-family: var(--font-main) !important;
-    }
-    .brand-logo-text {
-      font-size: 20px;
-      font-weight: 900;
-      letter-spacing: -0.5px;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-    }
-    .brand-blue { color: #0471fc; }
-    .brand-yellow { color: #f3c903; }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/dashboard.css?v={{ filemtime(public_path('css/dashboard.css')) }}">
 </head>
 <body id="dashboard-page" data-active-role="{{ $activeRole ?? 'penyuruh' }}">
 
+  @php
+    $penyuruhCompleted = $myOrders->where('status', 'selesai');
+    $mitraCompleted = $completedOrders->where('disuruh_id', $user->id ?? 0);
+    $mitraAllTasks = $myTakenOrders->merge($mitraCompleted);
+    $pesananBadgeCount = $activeRole === 'penyuruh'
+        ? $myOrders->count()
+        : ($activeRole === 'disuruh' ? $openOrders->count() : $allOrders->count());
+    $riwayatBadgeCount = $activeRole === 'penyuruh'
+        ? $penyuruhCompleted->count()
+        : ($activeRole === 'disuruh' ? $mitraCompleted->count() : $completedOrders->count());
+  @endphp
+
   <!-- ═══════════════════════════════════════════ -->
-  <!-- HEADER                                      -->
+  <!-- HEADER (Responsive Desktop + Mobile)        -->
   <!-- ═══════════════════════════════════════════ -->
   <header class="dashboard-header">
-    <div class="header-left">
-      <a href="/" class="brand-logo-text" style="margin-right: 12px;">
-        <span class="brand-blue">Pen</span><span class="brand-yellow">Suruh</span>
-      </a>
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="/" class="brand-logo-text" aria-label="Beranda PenSuruh">
+          <span class="brand-blue">Pen</span><span class="brand-yellow">Suruh</span>
+        </a>
 
-      @if(isset($user) && $user->avatar)
-        <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="user-avatar" style="object-fit:cover;">
-      @else
-        <div class="user-avatar">{{ strtoupper(substr($user->name ?? 'U', 0, 2)) }}</div>
-      @endif
-
-      <div class="user-greeting">
-        <small>Selamat Datang</small>
-        <strong>
-          Halo, {{ $user->name ?? 'Pengguna' }}
-          @if($activeRole === 'penyuruh')
-            <span class="role-badge customer" id="current-role-badge">PENYURUH (CUSTOMER)</span>
-          @elseif($activeRole === 'disuruh')
-            <span class="role-badge mitra" id="current-role-badge">MITRA PESURUH</span>
+        <div class="header-user-block">
+          @if(isset($user) && $user->avatar)
+            <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="user-avatar" style="object-fit:cover;">
           @else
-            <span class="role-badge admin" id="current-role-badge">ADMINISTRATOR</span>
+            <div class="user-avatar">{{ strtoupper(substr($user->name ?? 'U', 0, 2)) }}</div>
           @endif
-        </strong>
+
+          <div class="user-greeting">
+            <small>Selamat Datang</small>
+            <strong>
+              <span class="user-name-truncate">{{ $user->name ?? 'Pengguna' }}</span>
+              @if($activeRole === 'penyuruh')
+                <span class="role-badge customer" id="current-role-badge">Penyuruh</span>
+              @elseif($activeRole === 'disuruh')
+                <span class="role-badge mitra" id="current-role-badge">Mitra</span>
+              @else
+                <span class="role-badge admin" id="current-role-badge">Admin</span>
+              @endif
+            </strong>
+          </div>
+        </div>
+
+        <!-- Desktop Navigation Tabs -->
+        <nav class="tab-nav desktop-only-nav" aria-label="Navigasi dashboard">
+          <a href="#" class="tab-btn dashboard-tab-btn active" data-tab="ringkasan">Beranda</a>
+          <a href="#" class="tab-btn dashboard-tab-btn" data-tab="tugas">
+            Pesanan <span class="badge-count">{{ $pesananBadgeCount }}</span>
+          </a>
+          <a href="#" class="tab-btn dashboard-tab-btn" data-tab="riwayat">
+            Riwayat <span class="badge-count">{{ $riwayatBadgeCount }}</span>
+          </a>
+        </nav>
       </div>
 
-      <!-- Main navigation tabs -->
-      <nav class="tab-nav" aria-label="Navigasi dashboard">
-        <a href="#" class="tab-btn dashboard-tab-btn active" data-tab="ringkasan">Beranda</a>
-        <a href="#" class="tab-btn dashboard-tab-btn" data-tab="tugas">
-          Pesanan
-          <span class="badge-count">{{ $activeRole === 'penyuruh' ? $myOrders->count() : $openOrders->count() }}</span>
-        </a>
-        <a href="#" class="tab-btn dashboard-tab-btn" data-tab="riwayat">
-          Riwayat
-          <span class="badge-count">{{ $completedOrders->count() }}</span>
-        </a>
-      </nav>
+      <div class="header-right">
+        <!-- Desktop Role Switcher -->
+        <div class="mode-switcher desktop-only-mode" role="group" aria-label="Pilih mode role">
+          <a href="{{ route('dashboard.switch-role', 'penyuruh') }}" class="mode-link {{ $activeRole === 'penyuruh' ? 'active' : '' }}" data-role="penyuruh">Penyuruh</a>
+          <a href="{{ route('dashboard.switch-role', 'disuruh') }}" class="mode-link {{ $activeRole === 'disuruh' ? 'active' : '' }}" data-role="disuruh">Mitra</a>
+          <a href="{{ route('dashboard.switch-role', 'admin') }}" class="mode-link {{ $activeRole === 'admin' ? 'active' : '' }}" data-role="admin">Admin</a>
+        </div>
 
-      <!-- Role Switcher -->
-      <div class="mode-switcher">
-        <span>Mode:</span>
-        <a href="{{ route('dashboard.switch-role', 'penyuruh') }}" class="mode-link {{ $activeRole === 'penyuruh' ? 'active' : '' }}" data-role="penyuruh">Penyuruh</a>
-        <a href="{{ route('dashboard.switch-role', 'disuruh') }}" class="mode-link {{ $activeRole === 'disuruh' ? 'active' : '' }}" data-role="disuruh">Yang Disuruh</a>
-        <a href="{{ route('dashboard.switch-role', 'admin') }}" class="mode-link {{ $activeRole === 'admin' ? 'active' : '' }}" data-role="admin">Admin</a>
+        <a href="/" class="btn-header-link" title="Kembali ke Landing Page">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span class="hide-mobile">Beranda Web</span>
+        </a>
+
+        <form action="/logout" method="POST" style="margin:0;">
+          @csrf
+          <button type="submit" class="btn-logout" title="Keluar akun">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span class="hide-mobile">Keluar</span>
+          </button>
+        </form>
       </div>
     </div>
 
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <a href="/" style="font-size: 0.8125rem; color: var(--accent-blue); font-weight: 600; text-decoration: none;">Landing Page</a>
-      <form action="/logout" method="POST" style="margin:0;">
-        @csrf
-        <button type="submit" style="font-size: 0.8125rem; color: #ef4444; font-weight: 600; padding: 6px 14px; border: 1px solid #fca5a5; border-radius: 8px; background: #fff5f5; cursor: pointer;">Keluar</button>
-      </form>
+    <!-- Tablet & Mobile Subbar (Selalu tampil di <= 1080px) -->
+    <div class="mobile-subbar">
+      <div class="mobile-subbar-inner">
+        <nav class="tab-nav" aria-label="Navigasi dashboard mobile">
+          <a href="#" class="tab-btn dashboard-tab-btn active" data-tab="ringkasan">Beranda</a>
+          <a href="#" class="tab-btn dashboard-tab-btn" data-tab="tugas">
+            Pesanan <span class="badge-count">{{ $pesananBadgeCount }}</span>
+          </a>
+          <a href="#" class="tab-btn dashboard-tab-btn" data-tab="riwayat">
+            Riwayat <span class="badge-count">{{ $riwayatBadgeCount }}</span>
+          </a>
+        </nav>
+
+        <div class="mode-switcher" role="group" aria-label="Pilih mode role mobile">
+          <a href="{{ route('dashboard.switch-role', 'penyuruh') }}" class="mode-link {{ $activeRole === 'penyuruh' ? 'active' : '' }}" data-role="penyuruh">Penyuruh</a>
+          <a href="{{ route('dashboard.switch-role', 'disuruh') }}" class="mode-link {{ $activeRole === 'disuruh' ? 'active' : '' }}" data-role="disuruh">Mitra</a>
+          <a href="{{ route('dashboard.switch-role', 'admin') }}" class="mode-link {{ $activeRole === 'admin' ? 'active' : '' }}" data-role="admin">Admin</a>
+        </div>
+      </div>
     </div>
   </header>
 
   <!-- Flash Messages -->
   @if(session('success'))
-    <div style="margin: 16px 32px; padding: 12px 16px; background: #d1fae5; border: 1px solid #6ee7b7; border-radius: 10px; color: #065f46; font-size: 0.875rem; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-      <span>✓</span> {{ session('success') }}
+    <div class="flash-alert">
+      <div class="flash-alert-box success">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>{{ session('success') }}</span>
+      </div>
     </div>
   @endif
   @if(session('error'))
-    <div style="margin: 16px 32px; padding: 12px 16px; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 10px; color: #991b1b; font-size: 0.875rem; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-      <span>!</span> {{ session('error') }}
+    <div class="flash-alert">
+      <div class="flash-alert-box error">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>{{ session('error') }}</span>
+      </div>
+    </div>
+  @endif
+  @if($errors->any())
+    <div class="flash-alert">
+      <div class="flash-alert-box error">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>{{ $errors->first() }}</span>
+      </div>
     </div>
   @endif
 
   <main class="main-content">
 
     <!-- ═══════════════════════════════════════════ -->
-    <!-- VIEW: PENYURUH (Customer - Gojek Style)    -->
+    <!-- VIEW: PENYURUH (Customer)                   -->
     <!-- ═══════════════════════════════════════════ -->
     <div class="role-view" id="view-penyuruh" style="{{ $activeRole !== 'penyuruh' ? 'display:none;' : '' }}">
 
       <!-- Tab: Beranda -->
       <div class="tab-content active" data-tab-panel="ringkasan">
 
-        <!-- GoPay-style Wallet Bar -->
+        <!-- Wallet Bar -->
         <section class="gopay-bar" aria-label="Dompet PenSuruh">
           <div class="gopay-wallet-info">
             <div class="gopay-balance-box">
               <div class="gopay-balance-label">
                 <span>Saldo Dompet PenSuruh</span>
-                <span>PS-00340227AB</span>
+                <span style="font-family:monospace; opacity:0.85;">PS-{{ str_pad($user->id ?? 1, 5, '0', STR_PAD_LEFT) }}</span>
               </div>
               <div class="gopay-balance-value">
                 <span class="wallet-balance-amount" id="penyuruh-saldo" data-value="Rp 1.450.000">Rp 1.450.000</span>
-                <button type="button" class="eye-toggle" onclick="toggleBalance()" aria-label="Sembunyikan saldo">👁</button>
+                <button type="button" class="eye-toggle" onclick="toggleBalance()" aria-label="Sembunyikan saldo">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
               </div>
             </div>
 
             <div class="gopay-mini-stats">
               <div class="gopay-mini-stat">
                 <small>Poin Suruh</small>
-                <strong>★ 4.780</strong>
+                <strong class="yellow-highlight">★ 4.780</strong>
               </div>
               <div class="gopay-mini-stat">
                 <small>Voucher Aktif</small>
-                <strong id="penyuruh-voucher-count">🎫 8 Kupon</strong>
+                <strong id="penyuruh-voucher-count">8 Kupon</strong>
               </div>
             </div>
           </div>
 
           <div class="gopay-actions">
             <button type="button" class="btn-gopay" onclick="openTopUpModal()">+ Isi Saldo</button>
-            <button type="button" class="btn-gopay-ghost" onclick="switchDashboardTab('tugas')">📋 Pesanan Saya</button>
-            <button type="button" class="btn-gopay-ghost" onclick="switchDashboardTab('riwayat')">🧾 Mutasi</button>
+            <button type="button" class="btn-gopay-ghost" onclick="switchDashboardTab('tugas')">Pesanan Saya</button>
+            <button type="button" class="btn-gopay-ghost" onclick="switchDashboardTab('riwayat')">Mutasi</button>
           </div>
         </section>
 
-        <!-- Gojek-style Quick Service Grid -->
+        <!-- Quick Service Grid -->
         <section aria-label="Pilih layanan jasa suruh">
           <div class="section-heading">
-            <span>Mau suruh apa hari ini?</span>
+            <h2>Mau suruh apa hari ini?</h2>
             <small>Pilih layanan untuk langsung memesan pesuruh terdekat</small>
           </div>
 
@@ -197,38 +231,49 @@
           <!-- Form Pesan Pesuruh -->
           <section class="card" id="order-form-card" aria-label="Form pemesanan pesuruh">
             <div class="card-header">
-              <h2 class="card-title">🛵 Pesan Pesuruh Sekarang</h2>
-              <span style="font-size: 0.75rem; color: var(--accent-green); font-weight: 600;">● 14 Mitra Online di Sekitarmu</span>
+              <h2 class="card-title">
+                <span class="card-title-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </span>
+                Pesan Pesuruh Sekarang
+              </h2>
+              <span style="font-size: 0.75rem; color: var(--accent-green); font-weight: 600;">● 14 Mitra Online</span>
             </div>
 
             <form id="orderForm" action="{{ route('orders.create') }}" method="POST">
               @csrf
-              <div class="form-group">
-                <label class="form-label" for="order-service">Jenis Layanan</label>
-                <select id="order-service" name="service_type" class="form-input" onchange="onServiceSelectChange(this)">
-                  <option value="Antar Paket & Dokumen" data-price="15000" selected>Antar Paket & Dokumen (Rp 15.000)</option>
-                  <option value="Beli Makan & Minum" data-price="12000">Beli Makan & Minum (Rp 12.000)</option>
-                  <option value="Titip Belanja & Antre" data-price="18000">Titip Belanja & Antre (Rp 18.000)</option>
-                  <option value="Bersih Rumah & Kost" data-price="45000">Bersih Rumah & Kost (Rp 45.000)</option>
-                  <option value="Jemput / Antar Orang" data-price="14000">Jemput / Antar Orang (Rp 14.000)</option>
-                  <option value="Suruh Custom / Lainnya" data-price="25000">Suruh Custom / Lainnya (Rp 25.000)</option>
-                </select>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="order-service">Jenis Layanan</label>
+                  <select id="order-service" name="service_type" class="form-input" onchange="onServiceSelectChange(this)">
+                    <option value="Antar Paket & Dokumen" data-price="15000" selected>Antar Paket & Dokumen (Rp 15.000)</option>
+                    <option value="Beli Makan & Minum" data-price="12000">Beli Makan & Minum (Rp 12.000)</option>
+                    <option value="Titip Belanja & Antre" data-price="18000">Titip Belanja & Antre (Rp 18.000)</option>
+                    <option value="Bersih Rumah & Kost" data-price="45000">Bersih Rumah & Kost (Rp 45.000)</option>
+                    <option value="Jemput / Antar Orang" data-price="14000">Jemput / Antar Orang (Rp 14.000)</option>
+                    <option value="Suruh Custom / Lainnya" data-price="25000">Suruh Custom / Lainnya (Rp 25.000)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="order-title">Judul Singkat Tugas</label>
+                  <input type="text" id="order-title" name="title" class="form-input" value="Antar Paket & Dokumen" placeholder="Contoh: Antar Map ke Kampus" required>
+                </div>
               </div>
 
               <div class="form-group">
                 <label class="form-label" for="order-pickup">Lokasi Jemput / Lokasi Tugas</label>
                 <input type="text" id="order-pickup" name="pickup_location" class="form-input" placeholder="Contoh: Kost Kejawan Putih Tambak No. 12" required>
                 <div class="location-chips">
-                  <button type="button" class="location-chip" onclick="setPickup('Kampus PENS Sukolilo')">📍 Kampus PENS</button>
-                  <button type="button" class="location-chip" onclick="setPickup('Kost Kejawan Putih')">🏠 Kost Kejawan</button>
-                  <button type="button" class="location-chip" onclick="setPickup('Galaxy Mall Surabaya')">🏬 Galaxy Mall</button>
-                  <button type="button" class="location-chip" onclick="setPickup('Stasiun Gubeng')">🚉 Stasiun Gubeng</button>
+                  <button type="button" class="location-chip" onclick="setPickup('Kampus PENS Sukolilo')">Kampus PENS</button>
+                  <button type="button" class="location-chip" onclick="setPickup('Kost Kejawan Putih')">Kost Kejawan</button>
+                  <button type="button" class="location-chip" onclick="setPickup('Galaxy Mall Surabaya')">Galaxy Mall</button>
+                  <button type="button" class="location-chip" onclick="setPickup('Stasiun Gubeng')">Stasiun Gubeng</button>
                 </div>
               </div>
 
               <div class="form-group">
                 <label class="form-label" for="order-dropoff">Lokasi Tujuan <span style="font-weight:400; color:var(--text-muted);">(opsional)</span></label>
-                <input type="text" id="order-dropoff" name="dropoff_location" class="form-input" placeholder="Contoh: Gedung D4 PENS / Jl. Arif Rahman Hakim">
+                <input type="text" id="order-dropoff" name="destination_location" class="form-input" placeholder="Contoh: Gedung D4 PENS / Jl. Arif Rahman Hakim">
               </div>
 
               <div class="form-group">
@@ -236,7 +281,7 @@
                 <textarea id="order-notes" name="description" class="form-input" rows="2" placeholder="Contoh: Tolong antarkan map biru ke ruang TU lantai 2." required></textarea>
               </div>
 
-              <div class="form-row" style="margin-bottom: 16px;">
+              <div class="form-row">
                 <div class="form-group" style="margin-bottom: 0;">
                   <label class="form-label" for="order-voucher">Pakai Voucher</label>
                   <select id="order-voucher" class="form-input" onchange="updateOrderTotal()">
@@ -247,7 +292,7 @@
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
                   <label class="form-label">Estimasi Waktu</label>
-                  <div class="form-input" style="background: var(--bg-gray); color: var(--text-secondary);">⚡ 15 - 25 menit</div>
+                  <div class="form-input" style="background: var(--bg-gray); color: var(--text-secondary);">15 - 25 menit</div>
                 </div>
               </div>
 
@@ -256,7 +301,7 @@
               <div class="order-summary-box">
                 <div>
                   <div class="total-label">Total Estimasi Ongkos</div>
-                  <small id="order-summary-detail" style="color: var(--text-muted);">Antar Paket & Dokumen</small>
+                  <small id="order-summary-detail" style="color: var(--text-muted); font-size: 0.75rem;">Antar Paket & Dokumen</small>
                 </div>
                 <div class="total-price" id="order-total-price">Rp 15.000</div>
               </div>
@@ -265,44 +310,53 @@
             </form>
           </section>
 
-          <!-- Active Order Tracker + Reorder -->
+          <!-- Right Column: Active Order Tracker + Reorder -->
           <div style="display: flex; flex-direction: column; gap: 20px;">
 
             <!-- Pesanan Aktif -->
             <section class="card active-order-card" aria-label="Pesanan aktif">
               <div class="card-header">
-                <h3 class="card-title">📍 Pesanan Aktif</h3>
-                @php $aktif = $myOrders->where('status', 'open')->first(); @endphp
-                @if($aktif)
-                  <span class="order-status-pill">Menunggu Mitra</span>
+                <h3 class="card-title">
+                  <span class="card-title-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  </span>
+                  Pesanan Aktif
+                </h3>
+                @php $aktif = $myOrders->whereIn('status', ['menunggu', 'diambil'])->first(); @endphp
+                @if($aktif && $aktif->status === 'diambil')
+                  <span class="order-status-pill">Mitra Menuju Lokasi</span>
+                @elseif($aktif)
+                  <span class="order-status-pill searching">Menunggu Mitra</span>
                 @else
-                  <span class="order-status-pill" style="background:#f3f4f6; color:#6b7280;">Tidak Ada</span>
+                  <span class="order-status-pill" style="background:#f1f5f9; color:#64748b;">Tidak Ada</span>
                 @endif
               </div>
 
               @if($aktif)
                 <div>
-                  <div style="font-weight: 700; font-size: 0.9375rem;">{{ $aktif->service_type ?? $aktif->title }}</div>
-                  <div style="font-size: 0.8125rem; color: var(--text-secondary);">{{ $aktif->pickup_location ?? '-' }} → {{ $aktif->dropoff_location ?? 'Lokasi Tugas' }}</div>
-                  <div class="order-progress" style="margin: 16px 0;">
+                  <div style="font-weight: 700; font-size: 0.9375rem; color: var(--text-primary);">{{ $aktif->title ?? $aktif->service_type }}</div>
+                  <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 2px;">{{ $aktif->pickup_location ?? 'Lokasi Jemput' }} → {{ $aktif->destination_location ?? 'Lokasi Tugas' }}</div>
+                  <div class="order-progress">
                     <div class="order-progress-step done"><div class="bar"></div>Dipesan</div>
-                    <div class="order-progress-step {{ $aktif->disuruh_id ? 'done' : '' }}"><div class="bar"></div>Dijemput</div>
-                    <div class="order-progress-step"><div class="bar"></div>Dikerjakan</div>
+                    <div class="order-progress-step {{ $aktif->status === 'diambil' ? 'done' : '' }}"><div class="bar"></div>Diambil</div>
+                    <div class="order-progress-step {{ $aktif->status === 'diambil' ? 'done' : '' }}"><div class="bar"></div>Dikerjakan</div>
                     <div class="order-progress-step"><div class="bar"></div>Selesai</div>
                   </div>
-                  @if($aktif->disuruh_id)
+                  @if($aktif->disuruh)
                     <div class="mitra-info-box">
-                      <div class="mitra-avatar">{{ strtoupper(substr($aktif->mitra->name ?? 'M', 0, 2)) }}</div>
-                      <div style="flex:1;">
-                        <div style="font-weight:700; font-size:0.875rem;">{{ $aktif->mitra->name ?? 'Mitra' }}</div>
-                        <div style="font-size:0.75rem; color:var(--text-secondary);">★ 4.9 · Sedang menuju lokasi</div>
+                      <div class="mitra-avatar">{{ strtoupper(substr($aktif->disuruh->name ?? 'M', 0, 2)) }}</div>
+                      <div style="flex:1; min-width:0;">
+                        <div style="font-weight:700; font-size:0.875rem;">{{ $aktif->disuruh->name }}</div>
+                        <div style="font-size:0.75rem; color:var(--text-secondary);">★ 4.9 · Sedang mengerjakan tugas</div>
                       </div>
                     </div>
                   @endif
                 </div>
               @else
                 <div style="text-align:center; padding: 24px 0; color: var(--text-muted);">
-                  <div style="font-size:2rem; margin-bottom:8px;">📋</div>
+                  <div style="width: 44px; height: 44px; margin: 0 auto 10px; border-radius: 50%; background: #eff6ff; color: var(--accent-blue); display: flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  </div>
                   <div style="font-size:0.875rem;">Belum ada pesanan aktif.<br>Pesan pesuruh sekarang!</div>
                 </div>
               @endif
@@ -311,17 +365,31 @@
             <!-- Pesan Lagi -->
             <section class="card" aria-label="Pesan lagi tugas favorit">
               <div class="card-header">
-                <h3 class="card-title">🔁 Pesan Lagi</h3>
-                <a href="#" class="activity-link" onclick="switchDashboardTab('tugas'); return false;">Lihat Semua</a>
+                <h3 class="card-title">
+                  <span class="card-title-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                  </span>
+                  Pesan Lagi
+                </h3>
+                <a href="#" style="font-size: 0.75rem; font-weight: 600;" onclick="switchDashboardTab('tugas'); return false;">Lihat Semua</a>
               </div>
 
               @forelse($myOrders->take(3) as $ord)
                 <div class="reorder-card">
-                  <div>
-                    <div style="font-weight:600; font-size:0.875rem;">{{ $ord->service_type ?? $ord->title }}</div>
+                  <div style="min-width:0; flex:1;">
+                    <div style="font-weight:600; font-size:0.875rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $ord->title ?? $ord->service_type }}</div>
                     <div style="font-size:0.75rem; color:var(--text-muted);">{{ $ord->pickup_location ?? '-' }} · Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</div>
                   </div>
-                  <button type="button" class="btn btn-outline" style="padding:6px 12px; font-size:0.75rem;" onclick="alert('Fitur pesan ulang segera hadir!')">Pesan</button>
+                  <button
+                    type="button"
+                    class="btn btn-outline"
+                    style="padding:6px 14px; font-size:0.75rem;"
+                    data-service="{{ $ord->service_type ?? 'Antar Paket & Dokumen' }}"
+                    data-title="{{ $ord->title ?? $ord->service_type }}"
+                    data-pickup="{{ $ord->pickup_location ?? '' }}"
+                    data-dropoff="{{ $ord->destination_location ?? '' }}"
+                    data-notes="{{ $ord->description ?? '' }}"
+                    onclick="quickReorder(this)">Pesan</button>
                 </div>
               @empty
                 <div style="font-size:0.875rem; color:var(--text-muted); text-align:center; padding:16px 0;">Belum ada riwayat pesanan.</div>
@@ -335,9 +403,11 @@
       <!-- Tab: Pesanan (Penyuruh) -->
       <div class="tab-content" data-tab-panel="tugas">
         <div class="card">
-          <h3 class="card-title" style="margin-bottom: 20px;">📋 Daftar Pesanan Suruh Kamu</h3>
+          <div class="card-header">
+            <h3 class="card-title">Daftar Pesanan Suruh Kamu</h3>
+          </div>
 
-          <div class="filter-tabs" style="margin-bottom: 20px;">
+          <div class="filter-tabs">
             <button type="button" class="filter-tab active" onclick="filterCustomerTasks(this, 'all')">Semua</button>
             <button type="button" class="filter-tab" onclick="filterCustomerTasks(this, 'aktif')">Aktif</button>
             <button type="button" class="filter-tab" onclick="filterCustomerTasks(this, 'done')">Selesai</button>
@@ -345,16 +415,18 @@
 
           <ul class="task-list-compact" id="penyuruh-task-list">
             @forelse($myOrders as $ord)
-              <li class="task-item-compact" data-status="{{ $ord->status === 'completed' ? 'done' : 'aktif' }}">
-                <span class="task-status-badge {{ $ord->status === 'completed' ? 'done' : 'aktif' }}">{{ $ord->status === 'completed' ? 'Selesai' : 'Aktif' }}</span>
+              <li class="task-item-compact" data-status="{{ $ord->status === 'selesai' ? 'done' : 'aktif' }}">
+                <span class="task-status-badge {{ $ord->status === 'selesai' ? 'done' : ($ord->status === 'diambil' ? 'aktif' : 'pending') }}">
+                  {{ $ord->status === 'selesai' ? 'Selesai' : ($ord->status === 'diambil' ? 'Diambil' : 'Menunggu') }}
+                </span>
                 <div class="task-compact-info">
-                  <div class="task-compact-title">{{ $ord->service_type ?? $ord->title }}</div>
-                  <div class="task-compact-meta">{{ $ord->created_at->format('d M Y') }} · Mitra: {{ $ord->mitra->name ?? 'Belum ada' }}</div>
+                  <div class="task-compact-title">{{ $ord->title ?? $ord->service_type }}</div>
+                  <div class="task-compact-meta">{{ $ord->created_at->format('d M Y') }} · Mitra: {{ $ord->disuruh->name ?? 'Belum ada' }}</div>
                 </div>
                 <span class="task-compact-price">Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
               </li>
             @empty
-              <li style="padding:24px; text-align:center; color:var(--text-muted); font-size:0.875rem;">Belum ada pesanan.</li>
+              <li style="padding:28px; text-align:center; color:var(--text-muted); font-size:0.875rem;">Belum ada pesanan.</li>
             @endforelse
           </ul>
         </div>
@@ -363,19 +435,21 @@
       <!-- Tab: Riwayat (Penyuruh) -->
       <div class="tab-content" data-tab-panel="riwayat">
         <div class="card">
-          <h3 class="card-title" style="margin-bottom: 20px;">🧾 Riwayat Mutasi Dompet</h3>
+          <div class="card-header">
+            <h3 class="card-title">Riwayat Mutasi Dompet</h3>
+          </div>
           <ul class="transaction-list" id="penyuruh-history-list">
-            @forelse($completedOrders as $ord)
+            @forelse($penyuruhCompleted as $ord)
               <li class="transaction-item">
-                <div class="transaction-icon send" aria-hidden="true">📄</div>
+                <div class="transaction-icon send" aria-hidden="true">↑</div>
                 <div class="transaction-info">
-                  <div class="transaction-name">{{ $ord->service_type ?? $ord->title }}</div>
+                  <div class="transaction-name">{{ $ord->title ?? $ord->service_type }}</div>
                   <div class="transaction-date">{{ $ord->updated_at->format('d M Y, H:i') }} WIB</div>
                 </div>
                 <span class="transaction-amount debit">-Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
               </li>
             @empty
-              <li style="padding:24px; text-align:center; color:var(--text-muted); font-size:0.875rem;">Belum ada riwayat transaksi.</li>
+              <li style="padding:28px; text-align:center; color:var(--text-muted); font-size:0.875rem;">Belum ada riwayat transaksi.</li>
             @endforelse
           </ul>
         </div>
@@ -384,7 +458,7 @@
     </div>
 
     <!-- ═══════════════════════════════════════════ -->
-    <!-- VIEW: YANG DISURUH (Mitra Pelaksana)       -->
+    <!-- VIEW: YANG DISURUH (Mitra Pelaksana)        -->
     <!-- ═══════════════════════════════════════════ -->
     <div class="role-view" id="view-disuruh" style="{{ $activeRole !== 'disuruh' ? 'display:none;' : '' }}">
 
@@ -393,8 +467,8 @@
         <!-- Mitra Online Toggle -->
         <section class="mitra-status-bar" aria-label="Status mitra online">
           <div>
-            <div style="font-size:0.75rem; color:var(--text-secondary); font-weight:600; text-transform:uppercase;">Status Akun Mitra</div>
-            <div style="font-size:1.125rem; font-weight:700;" id="mitra-status-text">🟢 Online — Siap Menerima Tugas Suruh</div>
+            <div style="font-size:0.75rem; color:var(--text-secondary); font-weight:700; text-transform:uppercase; letter-spacing:0.04em;">Status Akun Mitra</div>
+            <div style="font-size:1.0625rem; font-weight:700; margin-top:2px;" id="mitra-status-text">Online — Siap Menerima Tugas Suruh</div>
           </div>
           <button type="button" class="btn-toggle-online" id="btn-mitra-online" onclick="toggleMitraOnline(this)">Nonaktifkan Mode Terima Order</button>
         </section>
@@ -402,38 +476,37 @@
         <!-- Mitra Earnings + Rating -->
         <section class="wallet-section" aria-label="Pendapatan mitra">
           <div class="wallet-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; gap:8px; flex-wrap:wrap;">
               <span class="wallet-label">Pendapatan Tersedia (Bisa Ditarik)</span>
-              <span style="font-size:0.75rem; color:var(--text-muted);">MITRA ID: MTR-{{ str_pad($user->id ?? 1, 5, '0', STR_PAD_LEFT) }}</span>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;">MTR-{{ str_pad($user->id ?? 1, 5, '0', STR_PAD_LEFT) }}</span>
             </div>
             <div class="wallet-balance">
               <span class="wallet-balance-amount" data-value="Rp 875.000">Rp 875.000</span>
-              <button type="button" class="eye-toggle" onclick="toggleBalance()" aria-label="Sembunyikan pendapatan">👁</button>
+              <button type="button" class="eye-toggle" onclick="toggleBalance()" aria-label="Sembunyikan pendapatan">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
             </div>
             <div class="wallet-actions">
-              <button type="button" class="btn btn-primary" onclick="alert('Penarikan dana mitra ke rekening diproses (Demo).')">↓ Tarik Pendapatan</button>
+              <button type="button" class="btn btn-primary" onclick="alert('Penarikan dana mitra ke rekening diproses (Demo).')">Tarik Pendapatan</button>
               <button type="button" class="btn btn-outline" onclick="switchDashboardTab('riwayat')">Lihat Slip Komisi</button>
             </div>
           </div>
 
           <div class="priority-card">
-            <div class="priority-label">🏆 PERFORMA MITRA</div>
-            <div style="margin-bottom:4px; font-size:0.8125rem; color:rgba(255,255,255,0.7);">Pendapatan Minggu Ini</div>
+            <div class="priority-label">PERFORMA MITRA</div>
+            <div style="margin-bottom:4px; font-size:0.8125rem; color:rgba(255,255,255,0.72);">Pendapatan Minggu Ini</div>
             <div class="priority-balance">
-              Rp 340.000 <span class="priority-change">{{ $completedOrders->count() }} Tugas Selesai</span>
+              Rp {{ number_format($mitraCompleted->sum('price'), 0, ',', '.') }}
+              <span class="priority-change">{{ $mitraCompleted->count() }} Tugas Selesai</span>
             </div>
             <div class="priority-stats">
               <div class="priority-stat">
-                <div>
-                  <div class="priority-stat-label">Rating Pelanggan</div>
-                  <div class="priority-stat-value"><span class="star">★</span> 4.92</div>
-                </div>
+                <div class="priority-stat-label">Rating Pelanggan</div>
+                <div class="priority-stat-value"><span class="star">★</span> 4.92</div>
               </div>
               <div class="priority-stat">
-                <div>
-                  <div class="priority-stat-label">Tingkat Terima</div>
-                  <div class="priority-stat-value">96%</div>
-                </div>
+                <div class="priority-stat-label">Tingkat Terima</div>
+                <div class="priority-stat-value">96%</div>
               </div>
             </div>
           </div>
@@ -444,27 +517,26 @@
           <!-- Order Masuk -->
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">🔔 Orderan Masuk di Sekitarmu</h3>
+              <h3 class="card-title">Orderan Masuk di Sekitarmu</h3>
               <span style="font-size:0.75rem; color:var(--accent-blue); font-weight:600;">Radius 3 km</span>
             </div>
 
-            @forelse($openOrders->take(3) as $ord)
+            @forelse($openOrders->take(5) as $ord)
               <div class="incoming-order-card">
-                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                  <strong>{{ $ord->service_type ?? $ord->title }}</strong>
-                  <span style="font-weight:800; color:var(--accent-green);">+Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px;">
+                  <strong style="font-size:0.9375rem;">{{ $ord->title ?? $ord->service_type }}</strong>
+                  <span style="font-weight:800; color:var(--accent-green); white-space:nowrap;">+Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
                 </div>
                 <div style="font-size:0.8125rem; color:var(--text-secondary); margin-bottom:10px;">
-                  {{ $ord->pickup_location ?? 'Lokasi Tugas' }} → {{ $ord->dropoff_location ?? 'Tujuan' }}
+                  {{ $ord->pickup_location ?? 'Lokasi Tugas' }} → {{ $ord->destination_location ?? 'Tujuan' }}
                 </div>
                 <form action="{{ route('orders.take', $ord->slug) }}" method="POST">
                   @csrf
-                  <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Ambil Order Ini</button>
+                  <button type="submit" class="btn btn-primary" style="width:100%;">Ambil Order Ini</button>
                 </form>
               </div>
             @empty
-              <div style="text-align:center; padding:24px; color:var(--text-muted); font-size:0.875rem;">
-                <div style="font-size:2rem; margin-bottom:8px;">🔍</div>
+              <div style="text-align:center; padding:28px; color:var(--text-muted); font-size:0.875rem;">
                 Tidak ada orderan masuk saat ini.<br>Tetap online untuk menerima tugas!
               </div>
             @endforelse
@@ -473,26 +545,26 @@
           <!-- Tugas Yang Harus Dikerjakan -->
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">⚡ Tugas Yang Harus Dikerjakan</h3>
+              <h3 class="card-title">Tugas Yang Harus Dikerjakan</h3>
             </div>
             <ul class="task-list-compact" id="mitra-active-tasks">
-              @forelse($myOrders->where('status', 'taken') as $ord)
+              @forelse($myTakenOrders as $ord)
                 <li class="task-item-compact">
                   <span class="task-status-badge aktif">Berjalan</span>
                   <div class="task-compact-info">
-                    <div class="task-compact-title">{{ $ord->service_type ?? $ord->title }}</div>
+                    <div class="task-compact-title">{{ $ord->title ?? $ord->service_type }}</div>
                     <div class="task-compact-meta">Pemesan: {{ $ord->penyuruh->name ?? '-' }}</div>
                   </div>
                   <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
                     <span class="task-compact-price">+Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
                     <form action="{{ route('orders.complete', $ord->slug) }}" method="POST" style="margin:0;">
                       @csrf
-                      <button type="submit" class="btn btn-outline" style="padding:4px 10px; font-size:0.75rem;">Selesai</button>
+                      <button type="submit" class="btn btn-outline" style="padding:4px 12px; font-size:0.75rem;">Selesai</button>
                     </form>
                   </div>
                 </li>
               @empty
-                <li style="padding:16px; text-align:center; color:var(--text-muted); font-size:0.875rem;">Belum ada tugas aktif.</li>
+                <li style="padding:24px; text-align:center; color:var(--text-muted); font-size:0.875rem;">Belum ada tugas aktif.</li>
               @endforelse
             </ul>
           </div>
@@ -502,19 +574,21 @@
       <!-- Tab: Tugas (Mitra) -->
       <div class="tab-content" data-tab-panel="tugas">
         <div class="card">
-          <h3 class="card-title" style="margin-bottom:16px;">📋 Semua Tugas Mitra</h3>
+          <div class="card-header">
+            <h3 class="card-title">Semua Tugas Mitra</h3>
+          </div>
           <ul class="task-list-compact">
-            @forelse($myOrders as $ord)
+            @forelse($mitraAllTasks as $ord)
               <li class="task-item-compact">
-                <span class="task-status-badge {{ $ord->status === 'completed' ? 'done' : 'aktif' }}">{{ $ord->status === 'completed' ? 'Selesai' : 'Berjalan' }}</span>
+                <span class="task-status-badge {{ $ord->status === 'selesai' ? 'done' : 'aktif' }}">{{ $ord->status === 'selesai' ? 'Selesai' : 'Berjalan' }}</span>
                 <div class="task-compact-info">
-                  <div class="task-compact-title">{{ $ord->service_type ?? $ord->title }}</div>
+                  <div class="task-compact-title">{{ $ord->title ?? $ord->service_type }}</div>
                   <div class="task-compact-meta">Pemesan: {{ $ord->penyuruh->name ?? '-' }}</div>
                 </div>
                 <span class="task-compact-price">+Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
               </li>
             @empty
-              <li style="padding:24px; text-align:center; color:var(--text-muted);">Belum ada tugas.</li>
+              <li style="padding:28px; text-align:center; color:var(--text-muted);">Belum ada tugas.</li>
             @endforelse
           </ul>
         </div>
@@ -523,19 +597,21 @@
       <!-- Tab: Riwayat (Mitra) -->
       <div class="tab-content" data-tab-panel="riwayat">
         <div class="card">
-          <h3 class="card-title" style="margin-bottom:16px;">🧾 Riwayat Komisi & Pencairan Mitra</h3>
+          <div class="card-header">
+            <h3 class="card-title">Riwayat Komisi & Pencairan Mitra</h3>
+          </div>
           <ul class="transaction-list">
-            @forelse($completedOrders as $ord)
+            @forelse($mitraCompleted as $ord)
               <li class="transaction-item">
                 <div class="transaction-icon receive" aria-hidden="true">+</div>
                 <div class="transaction-info">
-                  <div class="transaction-name">Komisi Tugas: {{ $ord->service_type ?? $ord->title }}</div>
+                  <div class="transaction-name">Komisi Tugas: {{ $ord->title ?? $ord->service_type }}</div>
                   <div class="transaction-date">{{ $ord->updated_at->format('d M Y, H:i') }} WIB</div>
                 </div>
                 <span class="transaction-amount credit">+Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
               </li>
             @empty
-              <li style="padding:24px; text-align:center; color:var(--text-muted);">Belum ada riwayat.</li>
+              <li style="padding:28px; text-align:center; color:var(--text-muted);">Belum ada riwayat.</li>
             @endforelse
           </ul>
         </div>
@@ -544,7 +620,7 @@
     </div>
 
     <!-- ═══════════════════════════════════════════ -->
-    <!-- VIEW: ADMIN (Kontrol Penuh)                -->
+    <!-- VIEW: ADMIN (Kontrol Penuh)                 -->
     <!-- ═══════════════════════════════════════════ -->
     <div class="role-view" id="view-admin" style="{{ $activeRole !== 'admin' ? 'display:none;' : '' }}">
 
@@ -553,23 +629,24 @@
         <!-- Admin Stat Cards -->
         <div class="stat-cards">
           <div class="stat-card">
-            <div class="stat-label">Total Akun Pengguna</div>
+            <div class="stat-label">Total Pengguna</div>
             <div class="stat-value">{{ $adminStats['total_users'] }}</div>
-            <div class="stat-link"><a href="#">Semua Role</a></div>
+            <div class="stat-sub">Semua Role</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label" style="color:var(--accent-blue);">Akun Penyuruh (Customer)</div>
+            <div class="stat-label" style="color:var(--accent-blue);">Akun Penyuruh</div>
             <div class="stat-value">{{ $adminStats['total_penyuruh'] }}</div>
             <div class="stat-sub">Pemberi Tugas</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label" style="color:var(--accent-green);">Akun Yang Disuruh (Mitra)</div>
+            <div class="stat-label" style="color:var(--accent-green);">Akun Mitra</div>
             <div class="stat-value">{{ $adminStats['total_disuruh'] }}</div>
             <div class="stat-sub">Pelaksana</div>
           </div>
           <div class="stat-card highlight">
-            <div class="stat-label">Total Transaksi Selesai</div>
-            <div class="stat-value">Rp {{ number_format($adminStats['total_turnover'], 0, ',', '.') }} <span class="order-badge">{{ $adminStats['completed_count'] }} Order</span></div>
+            <div class="stat-label">Transaksi Selesai</div>
+            <div class="stat-value">Rp {{ number_format($adminStats['total_turnover'], 0, ',', '.') }}</div>
+            <div class="stat-sub">{{ $adminStats['completed_count'] }} Order Selesai</div>
           </div>
         </div>
 
@@ -579,80 +656,84 @@
             <div>
               <div class="management-label">KONTROL PENUH PLATFORM</div>
               <h2 class="management-title">Manajemen Seluruh Akun</h2>
-              <p class="management-desc">Kelola, monitor, dan ubah hak peran akun penyuruh maupun mitra yang disuruh.</p>
+              <p class="management-desc">Kelola, monitor, dan ubah hak peran akun penyuruh maupun mitra.</p>
             </div>
             <div class="search-box">
-              <span class="search-icon">🔍</span>
+              <span class="search-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </span>
               <input type="text" id="admin-search" placeholder="Cari nama atau email.." onkeyup="filterUserList()">
             </div>
           </div>
 
           <!-- Filter Tabs -->
           <div class="filter-tabs">
-            <button type="button" class="filter-tab admin-filter-tab active" data-filter="all">Semua Akun <span class="count">{{ $allUsers->count() }}</span></button>
-            <button type="button" class="filter-tab admin-filter-tab" data-filter="penyuruh">Akun Penyuruh <span class="count">{{ $adminStats['total_penyuruh'] }}</span></button>
-            <button type="button" class="filter-tab admin-filter-tab" data-filter="disuruh">Akun Mitra <span class="count">{{ $adminStats['total_disuruh'] }}</span></button>
+            <button type="button" class="filter-tab admin-filter-tab active" data-filter="all">Semua <span class="count">{{ $allUsers->count() }}</span></button>
+            <button type="button" class="filter-tab admin-filter-tab" data-filter="penyuruh">Penyuruh <span class="count">{{ $adminStats['total_penyuruh'] }}</span></button>
+            <button type="button" class="filter-tab admin-filter-tab" data-filter="disuruh">Mitra <span class="count">{{ $adminStats['total_disuruh'] }}</span></button>
           </div>
 
-          <!-- User Table -->
-          <table class="user-table" id="userAccountsTable">
-            <thead>
-              <tr>
-                <th>Nama Pengguna</th>
-                <th>Email & No. HP</th>
-                <th>Peran (Role)</th>
-                <th>Aktivitas Tugas</th>
-                <th>Status</th>
-                <th>Kontrol Role</th>
-              </tr>
-            </thead>
-            <tbody>
-              @foreach($allUsers as $u)
-                <tr data-role="{{ $u->role }}" data-name="{{ strtolower($u->name) }}" data-email="{{ strtolower($u->email ?? '') }}">
-                  <td>
-                    <div class="user-info-cell">
-                      @if($u->avatar)
-                        <img src="{{ $u->avatar }}" alt="{{ $u->name }}" class="user-avatar-sm" style="object-fit:cover;">
-                      @else
-                        <div class="user-avatar-sm {{ $u->role === 'admin' ? 'purple' : ($u->role === 'disuruh' ? 'green' : '') }}">{{ strtoupper(substr($u->name, 0, 2)) }}</div>
-                      @endif
-                      <div>
-                        <div class="user-name-cell">{{ $u->name }}</div>
-                        <div class="user-id-cell">ID: #{{ $u->id }}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="user-email-cell">{{ $u->email ?? '-' }}</div>
-                    <div class="user-email-cell sub">{{ $u->phone ?? 'Belum ada No. HP' }}</div>
-                  </td>
-                  <td>
-                    <span class="role-pill {{ $u->role === 'admin' ? 'admin' : ($u->role === 'disuruh' ? 'mitra' : 'customer') }}">{{ strtoupper($u->role) }}</span>
-                  </td>
-                  <td>
-                    @if($u->role === 'penyuruh')
-                      <span style="font-size:0.875rem; color:var(--text-secondary);"><b>{{ $u->orders_created_count }}</b> order dibuat</span>
-                    @elseif($u->role === 'disuruh')
-                      <span style="font-size:0.875rem; color:var(--text-secondary);"><b>{{ $u->orders_taken_count }}</b> tugas diambil</span>
-                    @else
-                      <span style="color:var(--text-secondary);">Akses Penuh</span>
-                    @endif
-                  </td>
-                  <td><span class="status-dot active">Aktif</span></td>
-                  <td>
-                    <form action="{{ route('users.update-role', $u->slug) }}" method="POST" style="margin:0;">
-                      @csrf
-                      <select name="role" onchange="this.form.submit()" class="role-select" aria-label="Ubah role {{ $u->name }}">
-                        <option value="penyuruh" {{ $u->role === 'penyuruh' ? 'selected' : '' }}>Penyuruh</option>
-                        <option value="disuruh" {{ $u->role === 'disuruh' ? 'selected' : '' }}>Yang Disuruh</option>
-                        <option value="admin" {{ $u->role === 'admin' ? 'selected' : '' }}>Admin</option>
-                      </select>
-                    </form>
-                  </td>
+          <!-- Responsive Scrollable User Table -->
+          <div class="table-responsive">
+            <table class="user-table" id="userAccountsTable">
+              <thead>
+                <tr>
+                  <th>Nama Pengguna</th>
+                  <th>Email &amp; No. HP</th>
+                  <th>Peran</th>
+                  <th>Aktivitas Tugas</th>
+                  <th>Status</th>
+                  <th>Kontrol Role</th>
                 </tr>
-              @endforeach
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @foreach($allUsers as $u)
+                  <tr data-role="{{ $u->role }}" data-name="{{ strtolower($u->name) }}" data-email="{{ strtolower($u->email ?? '') }}">
+                    <td>
+                      <div class="user-info-cell">
+                        @if($u->avatar)
+                          <img src="{{ $u->avatar }}" alt="{{ $u->name }}" class="user-avatar-sm" style="object-fit:cover;">
+                        @else
+                          <div class="user-avatar-sm {{ $u->role === 'admin' ? 'purple' : ($u->role === 'disuruh' ? 'green' : '') }}">{{ strtoupper(substr($u->name, 0, 2)) }}</div>
+                        @endif
+                        <div>
+                          <div class="user-name-cell">{{ $u->name }}</div>
+                          <div class="user-id-cell">ID: #{{ $u->id }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="user-email-cell">{{ $u->email ?? '-' }}</div>
+                      <div class="user-email-cell sub">{{ $u->phone ?? 'Belum ada No. HP' }}</div>
+                    </td>
+                    <td>
+                      <span class="role-pill {{ $u->role === 'admin' ? 'admin' : ($u->role === 'disuruh' ? 'mitra' : 'customer') }}">{{ strtoupper($u->role) }}</span>
+                    </td>
+                    <td>
+                      @if($u->role === 'penyuruh')
+                        <span style="color:var(--text-secondary);"><b>{{ $u->orders_created_count }}</b> order dibuat</span>
+                      @elseif($u->role === 'disuruh')
+                        <span style="color:var(--text-secondary);"><b>{{ $u->orders_taken_count }}</b> tugas diambil</span>
+                      @else
+                        <span style="color:var(--text-secondary);">Akses Penuh</span>
+                      @endif
+                    </td>
+                    <td><span class="status-dot">Aktif</span></td>
+                    <td>
+                      <form action="{{ route('users.update-role', $u->slug) }}" method="POST" style="margin:0;">
+                        @csrf
+                        <select name="role" onchange="this.form.submit()" class="role-select" aria-label="Ubah role {{ $u->name }}">
+                          <option value="penyuruh" {{ $u->role === 'penyuruh' ? 'selected' : '' }}>Penyuruh</option>
+                          <option value="disuruh" {{ $u->role === 'disuruh' ? 'selected' : '' }}>Yang Disuruh</option>
+                          <option value="admin" {{ $u->role === 'admin' ? 'selected' : '' }}>Admin</option>
+                        </select>
+                      </form>
+                    </td>
+                  </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
         </div>
 
       </div>
@@ -660,19 +741,23 @@
       <!-- Tab: Tugas (Admin) -->
       <div class="tab-content" data-tab-panel="tugas">
         <div class="card">
-          <h3 class="card-title" style="margin-bottom:16px;">📋 Monitoring Seluruh Pesanan Platform</h3>
+          <div class="card-header">
+            <h3 class="card-title">Monitoring Seluruh Pesanan Platform</h3>
+          </div>
           <ul class="task-list-compact">
-            @forelse($openOrders->merge($completedOrders) as $ord)
+            @forelse($allOrders as $ord)
               <li class="task-item-compact">
-                <span class="task-status-badge {{ $ord->status === 'completed' ? 'done' : 'aktif' }}">{{ $ord->status === 'completed' ? 'Selesai' : 'Aktif' }}</span>
+                <span class="task-status-badge {{ $ord->status === 'selesai' ? 'done' : ($ord->status === 'diambil' ? 'aktif' : 'pending') }}">
+                  {{ $ord->status === 'selesai' ? 'Selesai' : ($ord->status === 'diambil' ? 'Diambil' : 'Menunggu') }}
+                </span>
                 <div class="task-compact-info">
-                  <div class="task-compact-title">{{ $ord->service_type ?? $ord->title }}</div>
-                  <div class="task-compact-meta">Penyuruh: {{ $ord->penyuruh->name ?? '-' }} · Mitra: {{ $ord->mitra->name ?? 'Belum ada' }}</div>
+                  <div class="task-compact-title">{{ $ord->title ?? $ord->service_type }}</div>
+                  <div class="task-compact-meta">Penyuruh: {{ $ord->penyuruh->name ?? '-' }} · Mitra: {{ $ord->disuruh->name ?? 'Belum ada' }}</div>
                 </div>
                 <span class="task-compact-price">Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
               </li>
             @empty
-              <li style="padding:24px; text-align:center; color:var(--text-muted);">Belum ada pesanan di platform.</li>
+              <li style="padding:28px; text-align:center; color:var(--text-muted);">Belum ada pesanan di platform.</li>
             @endforelse
           </ul>
         </div>
@@ -681,19 +766,21 @@
       <!-- Tab: Riwayat (Admin) -->
       <div class="tab-content" data-tab-panel="riwayat">
         <div class="card">
-          <h3 class="card-title" style="margin-bottom:16px;">🧾 Log Transaksi Platform</h3>
+          <div class="card-header">
+            <h3 class="card-title">Log Transaksi Platform</h3>
+          </div>
           <ul class="transaction-list">
             @forelse($completedOrders as $ord)
               <li class="transaction-item">
                 <div class="transaction-icon receive" aria-hidden="true">✓</div>
                 <div class="transaction-info">
-                  <div class="transaction-name">Order #PS-{{ $ord->id }} Selesai · {{ $ord->service_type ?? $ord->title }}</div>
+                  <div class="transaction-name">Order #PS-{{ $ord->id }} · {{ $ord->title ?? $ord->service_type }}</div>
                   <div class="transaction-date">{{ $ord->updated_at->format('d M Y, H:i') }} WIB</div>
                 </div>
                 <span class="transaction-amount credit">Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
               </li>
             @empty
-              <li style="padding:24px; text-align:center; color:var(--text-muted);">Belum ada transaksi selesai.</li>
+              <li style="padding:28px; text-align:center; color:var(--text-muted);">Belum ada transaksi selesai.</li>
             @endforelse
           </ul>
         </div>
@@ -733,9 +820,19 @@
     </div>
   </div>
 
-  <script src="/pensuruh-web/js/app.js"></script>
   <script>
-    // Tab switching
+    let customerBalance = 1450000;
+    let selectedTopUpNominal = 100000;
+    let customTitleEdited = false;
+
+    const titleInput = document.getElementById('order-title');
+    if (titleInput) {
+      titleInput.addEventListener('input', function() {
+        customTitleEdited = this.value.trim().length > 0;
+      });
+    }
+
+    // Tab switching (sinkron desktop + mobile nav)
     function switchDashboardTab(tabName) {
       document.querySelectorAll('.dashboard-tab-btn').forEach(function(btn) {
         btn.classList.toggle('active', btn.dataset.tab === tabName);
@@ -759,59 +856,71 @@
       });
     });
 
-    // Toggle balance
+    // Balance toggle
     function toggleBalance() {
       document.querySelectorAll('.wallet-balance-amount').forEach(function(el) {
-        if (el.textContent === '••••••') {
+        if (el.dataset.hidden === 'true') {
           el.textContent = el.dataset.value;
+          el.dataset.hidden = 'false';
         } else {
-          el.textContent = '••••••';
+          el.dataset.value = el.textContent;
+          el.textContent = '••••••••';
+          el.dataset.hidden = 'true';
         }
       });
     }
 
-    // Top up modal
+    // Top Up Modal
     function openTopUpModal() {
-      document.getElementById('topup-modal')?.classList.add('active');
+      document.getElementById('topup-modal')?.classList.add('open');
     }
     function closeTopUpModal() {
-      document.getElementById('topup-modal')?.classList.remove('active');
+      document.getElementById('topup-modal')?.classList.remove('open');
     }
+    document.getElementById('topup-modal')?.addEventListener('click', function(e) {
+      if (e.target === this) closeTopUpModal();
+    });
+
     function selectTopUpNominal(el, val) {
+      selectedTopUpNominal = val;
       document.querySelectorAll('.nominal-btn').forEach(function(b) { b.classList.remove('selected'); });
       el.classList.add('selected');
     }
+
     function confirmTopUp() {
-      alert('Top up saldo berhasil diproses (simulasi).');
+      customerBalance += selectedTopUpNominal;
+      const formatted = 'Rp ' + customerBalance.toLocaleString('id-ID');
+      const saldoEl = document.getElementById('penyuruh-saldo');
+      if (saldoEl) {
+        saldoEl.dataset.value = formatted;
+        if (saldoEl.dataset.hidden !== 'true') saldoEl.textContent = formatted;
+      }
       closeTopUpModal();
     }
 
-    // Toggle mitra online
+    // Mitra Online Toggle
     function toggleMitraOnline(btn) {
       const text = document.getElementById('mitra-status-text');
-      if (btn.textContent.includes('Nonaktifkan')) {
+      const isOffline = btn.classList.toggle('offline');
+      if (isOffline) {
         btn.textContent = 'Aktifkan Mode Terima Order';
-        btn.style.color = '#10b981';
-        btn.style.borderColor = '#6ee7b7';
-        if (text) text.textContent = '🔴 Offline — Tidak Menerima Tugas';
+        if (text) text.textContent = 'Offline — Tidak Menerima Tugas';
       } else {
         btn.textContent = 'Nonaktifkan Mode Terima Order';
-        btn.style.color = '#ef4444';
-        btn.style.borderColor = '#fca5a5';
-        if (text) text.textContent = '🟢 Online — Siap Menerima Tugas Suruh';
+        if (text) text.textContent = 'Online — Siap Menerima Tugas Suruh';
       }
     }
 
     // Filter customer tasks
     function filterCustomerTasks(btn, status) {
-      document.querySelectorAll('.filter-tab').forEach(function(b) { b.classList.remove('active'); });
+      btn.closest('.filter-tabs').querySelectorAll('.filter-tab').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
       document.querySelectorAll('#penyuruh-task-list .task-item-compact').forEach(function(li) {
         li.style.display = (status === 'all' || li.dataset.status === status) ? '' : 'none';
       });
     }
 
-    // Admin user filter
+    // Admin search & filter
     function filterUserList() {
       const val = document.getElementById('admin-search')?.value.toLowerCase() || '';
       document.querySelectorAll('#userAccountsTable tbody tr').forEach(function(row) {
@@ -832,17 +941,20 @@
       });
     });
 
-    // Location chip shortcut
+    // Location & Service Selection
     function setPickup(loc) {
       const el = document.getElementById('order-pickup');
       if (el) el.value = loc;
     }
 
-    // Service select change
     function onServiceSelectChange(sel) {
-      const opt = sel.options[sel.selectedIndex];
-      const price = opt.dataset.price || 0;
-      document.getElementById('order-price-hidden').value = price;
+      const service = sel.value;
+      document.querySelectorAll('.service-tile').forEach(function(t) {
+        t.classList.toggle('selected', t.dataset.service === service);
+      });
+      if (!customTitleEdited && titleInput) {
+        titleInput.value = service;
+      }
       updateOrderTotal();
     }
 
@@ -850,26 +962,48 @@
       document.querySelectorAll('.service-tile').forEach(function(t) { t.classList.remove('selected'); });
       el.classList.add('selected');
       const service = el.dataset.service;
-      const price = parseInt(el.dataset.price || 0);
       const sel = document.getElementById('order-service');
-      if (sel) {
-        for (let i = 0; i < sel.options.length; i++) {
-          if (sel.options[i].value === service) { sel.selectedIndex = i; break; }
-        }
+      if (sel) sel.value = service;
+      if (!customTitleEdited && titleInput) {
+        titleInput.value = service;
       }
-      document.getElementById('order-price-hidden').value = price;
       updateOrderTotal();
+      document.getElementById('order-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     function updateOrderTotal() {
-      const price = parseInt(document.getElementById('order-price-hidden')?.value || 0);
-      const voucher = parseInt(document.getElementById('order-voucher')?.value || 0);
-      const total = Math.max(0, price - voucher);
+      const sel = document.getElementById('order-service');
+      const opt = sel?.options[sel.selectedIndex];
+      const basePrice = parseInt(opt?.dataset.price || 15000, 10);
+      const voucher = parseInt(document.getElementById('order-voucher')?.value || 0, 10);
+      const total = Math.max(5000, basePrice - voucher);
+
+      const hiddenPrice = document.getElementById('order-price-hidden');
+      if (hiddenPrice) hiddenPrice.value = total;
+
       const el = document.getElementById('order-total-price');
       if (el) el.textContent = 'Rp ' + total.toLocaleString('id-ID');
+
       const detail = document.getElementById('order-summary-detail');
-      const sel = document.getElementById('order-service');
       if (detail && sel) detail.textContent = sel.value;
+    }
+
+    function quickReorder(btn) {
+      const sel = document.getElementById('order-service');
+      if (sel && btn.dataset.service) {
+        sel.value = btn.dataset.service;
+        onServiceSelectChange(sel);
+      }
+      if (titleInput && btn.dataset.title) {
+        titleInput.value = btn.dataset.title;
+        customTitleEdited = true;
+      }
+      setPickup(btn.dataset.pickup || '');
+      const drop = document.getElementById('order-dropoff');
+      if (drop) drop.value = btn.dataset.dropoff || '';
+      const notes = document.getElementById('order-notes');
+      if (notes) notes.value = btn.dataset.notes || '';
+      document.getElementById('order-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   </script>
 </body>
