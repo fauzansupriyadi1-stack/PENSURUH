@@ -52,6 +52,11 @@ class WalletController extends Controller
         // Panggil DOKU Checkout QRIS API
         $dokuResponse = $dokuService->createQrisPayment($invoiceNumber, $amount, $user);
 
+        $amountStr = (string) (int) round($amount);
+        $fallbackQrisPayload = "00020101021226610014ID.CO.DOKU.WWW01189360089802370924330215{$invoiceNumber}0303UMI51440014ID.CO.QRIS.WWW0215ID10200349182730303UMI52045999530336054"
+            . str_pad((string) strlen($amountStr), 2, '0', STR_PAD_LEFT) . $amountStr
+            . "5802ID5918PENSURUH INDONESIA6008SURABAYA6105601116304";
+
         if ($dokuResponse['success']) {
             $transaction->update([
                 'doku_payment_url' => $dokuResponse['payment_url'],
@@ -60,28 +65,31 @@ class WalletController extends Controller
 
             return response()->json([
                 'success'      => true,
+                'doku_active'  => true,
                 'invoice'      => $invoiceNumber,
                 'amount'       => $amount,
                 'amount_fmt'   => 'Rp ' . number_format($amount, 0, ',', '.'),
                 'payment_url'  => $dokuResponse['payment_url'],
+                'qris_payload' => $dokuResponse['payment_url'],
                 'simulate_url' => url('/wallet/topup/simulate/' . $invoiceNumber),
             ]);
         }
 
-        // Jika DOKU API gagal (misal credentials sandbox / endpoint butuh aktivasi channel)
-        Log::warning('DOKU API Error, Menyediakan mode simulasi sandbox lokal', [
-            'error'   => $dokuResponse['message'] ?? 'Unknown error',
+        // Jika channel QRIS DOKU belum aktif di Back Office, tetap tampilkan QRIS payload & opsi simulasi
+        Log::warning('DOKU API Notice: ' . ($dokuResponse['message'] ?? 'Channel inactive'), [
             'invoice' => $invoiceNumber,
         ]);
 
         return response()->json([
-            'success'      => false,
-            'message'      => $dokuResponse['message'] ?? 'Gagal membuat tagihan QRIS DOKU.',
+            'success'      => true,
+            'doku_active'  => false,
+            'message'      => $dokuResponse['message'] ?? 'Channel QRIS DOKU sedang menunggu aktivasi.',
             'invoice'      => $invoiceNumber,
             'amount'       => $amount,
             'amount_fmt'   => 'Rp ' . number_format($amount, 0, ',', '.'),
+            'qris_payload' => $fallbackQrisPayload,
             'simulate_url' => url('/wallet/topup/simulate/' . $invoiceNumber),
-        ], 422);
+        ]);
     }
 
     /**

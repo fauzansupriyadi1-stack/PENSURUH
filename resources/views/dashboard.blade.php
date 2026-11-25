@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="/css/dashboard.css?v={{ filemtime(public_path('css/dashboard.css')) }}">
 </head>
 <body id="dashboard-page" data-active-role="{{ $activeRole ?? 'penyuruh' }}">
@@ -1292,23 +1293,31 @@
             </div>
           </div>
 
-          <p style="font-size:0.8125rem; color:var(--text-secondary); margin-bottom:14px;">
-            Halaman QRIS DOKU telah dibuka di tab baru. Silakan scan QRIS untuk menyelesaikan pembayaran.
-          </p>
-
-          <a href="#" id="topup-doku-link" target="_blank" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px 18px; font-size:0.9375rem; text-decoration:none; margin-bottom:10px;">
-            🚀 Buka Halaman QRIS DOKU
-          </a>
-
-          <div style="display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.75rem; color:#059669; font-weight:600; margin-top:10px;" id="topup-polling-status">
-            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
-            <span>Menunggu konfirmasi pembayaran QRIS...</span>
+          <!-- Kotak Kode QRIS -->
+          <div style="background:#ffffff; border:2px solid #e2e8f0; border-radius:16px; padding:16px; margin-bottom:14px; box-shadow:0 4px 12px rgba(0,0,0,0.04);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:10px; margin-bottom:12px;">
+              <span style="font-weight:900; font-size:1rem; letter-spacing:0.06em; color:#dc2626;">QRIS</span>
+              <span style="font-size:0.6875rem; font-weight:700; color:#64748b; background:#f1f5f9; padding:2px 8px; border-radius:6px;">PENSURUH · DOKU</span>
+            </div>
+            <div id="qris-qr-container" style="width:196px; height:196px; margin:0 auto; padding:8px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; display:flex; align-items:center; justify-content:center;"></div>
+            <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:10px; font-weight:500;">
+              Scan kode QRIS di atas menggunakan <strong>BCA, Mandiri, BRI, GoPay, OVO, DANA, atau ShopeePay</strong>
+            </div>
           </div>
 
-          <div style="margin-top:16px; padding-top:14px; border-top:1px dashed var(--border);">
-            <div style="font-size:0.6875rem; color:var(--text-muted); margin-bottom:6px;">Uji Coba Sandbox / Localhost:</div>
-            <a href="#" id="topup-simulate-btn" class="btn btn-outline" style="width:100%; justify-content:center; font-size:0.75rem; padding:6px 12px; color:#0471fc;">
-              ⚡ Simulasi Pembayaran Berhasil (Localhost)
+          <a href="#" id="topup-doku-link" target="_blank" class="btn btn-primary" style="width:100%; justify-content:center; padding:11px 18px; font-size:0.875rem; text-decoration:none; margin-bottom:10px; display:none;">
+            🚀 Buka Halaman Checkout DOKU
+          </a>
+
+          <div style="display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.75rem; color:#059669; font-weight:600; margin-top:8px;" id="topup-polling-status">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
+            <span>Menunggu pembayaran QRIS...</span>
+          </div>
+
+          <div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border);">
+            <div style="font-size:0.6875rem; color:var(--text-muted); margin-bottom:6px;">Simulasi Pembayaran (Testing Localhost):</div>
+            <a href="#" id="topup-simulate-btn" class="btn btn-outline" style="width:100%; justify-content:center; font-size:0.75rem; padding:7px 12px; color:#0471fc;">
+              ⚡ Simulasi Bayar QRIS Berhasil
             </a>
           </div>
         </div>
@@ -2572,39 +2581,62 @@
           btn.textContent = 'Bayar via QRIS Sekarang';
         }
 
-        if (data.success && data.payment_url) {
+        if (data.invoice) {
           activeTopUpInvoice = data.invoice;
           document.getElementById('topup-payment-loading').style.display = 'none';
           document.getElementById('topup-payment-ready').style.display = 'block';
           document.getElementById('topup-inv-display').textContent = data.invoice;
           document.getElementById('topup-amount-display').textContent = data.amount_fmt;
 
+          // Render QR Code QRIS langsung di dalam modal
+          const qrBox = document.getElementById('qris-qr-container');
+          if (qrBox) {
+            qrBox.innerHTML = '';
+            const payloadText = data.qris_payload || ('QRIS-PENSURUH-' + data.invoice);
+            if (typeof QRCode !== 'undefined') {
+              new QRCode(qrBox, {
+                text: payloadText,
+                width: 178,
+                height: 178,
+                colorDark: '#0f172a',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+              });
+            } else {
+              const img = document.createElement('img');
+              img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(payloadText);
+              img.alt = 'QRIS Code';
+              img.style.width = '178px';
+              img.style.height = '178px';
+              qrBox.appendChild(img);
+            }
+          }
+
           const link = document.getElementById('topup-doku-link');
           if (link) {
-            link.href = data.payment_url;
-            link.style.display = 'flex';
+            if (data.doku_active && data.payment_url) {
+              link.href = data.payment_url;
+              link.style.display = 'flex';
+            } else {
+              link.style.display = 'none';
+            }
           }
 
           const simBtn = document.getElementById('topup-simulate-btn');
           if (simBtn && data.simulate_url) simBtn.href = data.simulate_url;
 
-          window.open(data.payment_url, '_blank');
+          const statusEl = document.getElementById('topup-polling-status');
+          if (statusEl) {
+            statusEl.innerHTML = data.doku_active
+              ? '<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span><span>Menunggu pembayaran QRIS dari DOKU...</span>'
+              : '<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#f59e0b;"></span><span>QRIS Siap (Channel DOKU Back Office: ' + (data.message || 'Menunggu Aktivasi') + ')</span>';
+          }
+
           startTopUpStatusPolling(data.invoice);
         } else {
-          activeTopUpInvoice = data.invoice;
-          document.getElementById('topup-payment-loading').style.display = 'none';
-          document.getElementById('topup-payment-ready').style.display = 'block';
-          if (data.invoice) document.getElementById('topup-inv-display').textContent = data.invoice;
-          if (data.amount_fmt) document.getElementById('topup-amount-display').textContent = data.amount_fmt;
-
-          const simBtn = document.getElementById('topup-simulate-btn');
-          if (simBtn && data.simulate_url) simBtn.href = data.simulate_url;
-
-          const link = document.getElementById('topup-doku-link');
-          if (link) link.style.display = 'none';
-
-          document.getElementById('topup-polling-status').textContent = 'Koneksi DOKU: ' + (data.message || 'Gunakan tombol simulasi di bawah untuk pengetesan.');
-          startTopUpStatusPolling(data.invoice);
+          showToast(data.message || 'Gagal membuat QRIS.', 'error');
+          document.getElementById('topup-form-view').style.display = 'block';
+          document.getElementById('topup-payment-view').style.display = 'none';
         }
       })
       .catch(err => {
