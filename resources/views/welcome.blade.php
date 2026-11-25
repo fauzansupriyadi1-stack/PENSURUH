@@ -145,8 +145,8 @@
         <section id="about" class="w-full py-6 md:py-10">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 items-center">
                 <!-- Left: Cleaning staff photo + Social Icons -->
-                <div class="md:col-span-5 flex flex-col items-start gap-3.5">
-                    <div class="w-full max-w-[280px] sm:max-w-[310px] md:max-w-[320px] rounded-[16px] sm:rounded-[18px] overflow-hidden shadow-sm aspect-[4/3] bg-gray-100 border border-gray-100">
+                <div class="md:col-span-5 flex flex-col items-center md:items-start gap-3.5">
+                    <div class="w-full max-w-[320px] sm:max-w-[340px] md:max-w-[320px] mx-auto md:mx-0 rounded-[16px] sm:rounded-[18px] overflow-hidden shadow-sm aspect-[4/3] bg-gray-100 border border-gray-100">
                         <img 
                             src="/images/sources/about_cleaners_clean.png" 
                             alt="Mitra kebersihan PenSuruh" 
@@ -156,7 +156,7 @@
                     </div>
 
                     <!-- Social Media Icons (Instagram, YouTube, TikTok) -->
-                    <div class="flex items-center gap-4 text-gray-800 pl-1.5">
+                    <div class="w-full max-w-[320px] sm:max-w-[340px] md:max-w-[320px] flex items-center justify-start gap-4 text-gray-800 pl-1.5">
                         <!-- Instagram -->
                         <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="hover:text-[#0471fc] transition-colors p-0.5">
                             <svg class="w-4.5 h-4.5 fill-current" viewBox="0 0 24 24">
