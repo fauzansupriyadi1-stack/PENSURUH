@@ -192,35 +192,35 @@
           </div>
 
           <div class="service-grid">
-            <button type="button" class="service-tile selected" data-service="Antar Paket & Dokumen" data-price="15000" onclick="selectService(this)">
+            <button type="button" class="service-tile selected" data-service="Antar Paket & Dokumen" data-price="15000" data-min="15000" onclick="selectService(this)">
               <div class="service-icon-circle blue" aria-hidden="true">📦</div>
               <span class="service-tile-name">Antar Paket</span>
               <span class="service-tile-price">Mulai Rp 15rb</span>
             </button>
-            <button type="button" class="service-tile" data-service="Beli Makan & Minum" data-price="12000" onclick="selectService(this)">
+            <button type="button" class="service-tile" data-service="Beli Makan & Minum" data-price="12000" data-min="12000" onclick="selectService(this)">
               <div class="service-icon-circle red" aria-hidden="true">🍜</div>
               <span class="service-tile-name">Beli Makan</span>
               <span class="service-tile-price">Mulai Rp 12rb</span>
             </button>
-            <button type="button" class="service-tile" data-service="Titip Belanja & Antre" data-price="18000" onclick="selectService(this)">
+            <button type="button" class="service-tile" data-service="Titip Belanja & Antre" data-price="18000" data-min="18000" onclick="selectService(this)">
               <div class="service-icon-circle yellow" aria-hidden="true">🛒</div>
               <span class="service-tile-name">Titip Belanja</span>
               <span class="service-tile-price">Mulai Rp 18rb</span>
             </button>
-            <button type="button" class="service-tile" data-service="Bersih Rumah & Kost" data-price="45000" onclick="selectService(this)">
+            <button type="button" class="service-tile" data-service="Bersih Rumah & Kost" data-price="45000" data-min="45000" onclick="selectService(this)">
               <div class="service-icon-circle teal" aria-hidden="true">🧹</div>
               <span class="service-tile-name">Bersih Kost</span>
               <span class="service-tile-price">Mulai Rp 45rb</span>
             </button>
-            <button type="button" class="service-tile" data-service="Jemput / Antar Orang" data-price="14000" onclick="selectService(this)">
+            <button type="button" class="service-tile" data-service="Jemput / Antar Orang" data-price="14000" data-min="14000" onclick="selectService(this)">
               <div class="service-icon-circle green" aria-hidden="true">🛵</div>
               <span class="service-tile-name">Antar Jemput</span>
               <span class="service-tile-price">Mulai Rp 14rb</span>
             </button>
-            <button type="button" class="service-tile" data-service="Suruh Custom / Lainnya" data-price="25000" onclick="selectService(this)">
+            <button type="button" class="service-tile" data-service="Suruh Custom / Lainnya" data-price="25000" data-min="5000" onclick="selectService(this)">
               <div class="service-icon-circle purple" aria-hidden="true">📝</div>
               <span class="service-tile-name">Suruh Custom</span>
-              <span class="service-tile-price">Harga Bebas</span>
+              <span class="service-tile-price">Min Rp 5rb</span>
             </button>
           </div>
         </section>
@@ -247,12 +247,12 @@
                 <div class="form-group">
                   <label class="form-label" for="order-service">Jenis Layanan</label>
                   <select id="order-service" class="form-input" onchange="onServiceSelectChange(this)">
-                    <option value="Antar Paket & Dokumen" data-price="15000" selected>Antar Paket &amp; Dokumen (Rp 15.000)</option>
-                    <option value="Beli Makan & Minum" data-price="12000">Beli Makan &amp; Minum (Rp 12.000)</option>
-                    <option value="Titip Belanja & Antre" data-price="18000">Titip Belanja &amp; Antre (Rp 18.000)</option>
-                    <option value="Bersih Rumah & Kost" data-price="45000">Bersih Rumah &amp; Kost (Rp 45.000)</option>
-                    <option value="Jemput / Antar Orang" data-price="14000">Jemput / Antar Orang (Rp 14.000)</option>
-                    <option value="Suruh Custom / Lainnya" data-price="25000">Suruh Custom / Lainnya (Harga Bebas)</option>
+                    <option value="Antar Paket & Dokumen" data-price="15000" data-min="15000" selected>Antar Paket &amp; Dokumen (Mulai Rp 15.000)</option>
+                    <option value="Beli Makan & Minum" data-price="12000" data-min="12000">Beli Makan &amp; Minum (Mulai Rp 12.000)</option>
+                    <option value="Titip Belanja & Antre" data-price="18000" data-min="18000">Titip Belanja &amp; Antre (Mulai Rp 18.000)</option>
+                    <option value="Bersih Rumah & Kost" data-price="45000" data-min="45000">Bersih Rumah &amp; Kost (Mulai Rp 45.000)</option>
+                    <option value="Jemput / Antar Orang" data-price="14000" data-min="14000">Jemput / Antar Orang (Mulai Rp 14.000)</option>
+                    <option value="Suruh Custom / Lainnya" data-price="25000" data-min="5000">Suruh Custom / Lainnya (Min Rp 5.000)</option>
                   </select>
                 </div>
                 <div class="form-group">
@@ -263,29 +263,31 @@
 
               <!-- Custom Order Options (Hanya muncul saat pilih Suruh Custom / Lainnya) -->
               <div id="custom-order-fields" style="display:none; background:#eff6ff; border:1.5px dashed #93c5fd; border-radius:14px; padding:14px 16px; margin-bottom:16px;">
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:8px; flex-wrap:wrap;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
                   <span style="font-size:0.75rem; font-weight:700; color:var(--accent-blue); text-transform:uppercase; letter-spacing:0.04em;">Mode Suruh Custom</span>
-                  <span style="font-size:0.75rem; color:var(--text-secondary);">Atur layanan, ongkos &amp; waktu sesuai kebutuhanmu</span>
+                  <span style="font-size:0.75rem; color:var(--text-secondary);">Atur kategori &amp; estimasi waktu sesuai kebutuhanmu</span>
                 </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label" for="custom-service-name">Nama Kategori Custom <span style="font-weight:400; color:var(--text-muted);">(opsional)</span></label>
+                  <input type="text" id="custom-service-name" class="form-input" style="background:#ffffff;" placeholder="Contoh: Servis Laptop / Antre Loket" oninput="syncCustomServiceType()">
+                </div>
+              </div>
 
-                <div class="form-row">
-                  <div class="form-group" style="margin-bottom:0;">
-                    <label class="form-label" for="custom-service-name">Nama Kategori Custom <span style="font-weight:400; color:var(--text-muted);">(opsional)</span></label>
-                    <input type="text" id="custom-service-name" class="form-input" style="background:#ffffff;" placeholder="Contoh: Servis Laptop / Antre Loket" oninput="syncCustomServiceType()">
-                  </div>
-                  <div class="form-group" style="margin-bottom:0;">
-                    <label class="form-label" for="order-custom-price">Ongkos Penawaran (Rp)</label>
-                    <input type="number" id="order-custom-price" class="form-input" style="background:#ffffff; font-weight:700; color:var(--accent-blue);" min="5000" step="1000" value="25000" placeholder="Minimal Rp 5.000" oninput="updateOrderTotal()">
-                  </div>
+              <!-- Harga Penawaran Custom (Berlaku untuk semua layanan dengan batas minimum masing-masing) -->
+              <div class="form-group" id="price-customization-box" style="background:#f8fafc; border:1px solid var(--border); border-radius:14px; padding:14px 16px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; gap:8px; flex-wrap:wrap;">
+                  <label class="form-label" for="order-offer-price" style="margin-bottom:0;">Ongkos / Harga Penawaran (Rp)</label>
+                  <span id="price-min-badge" style="font-size:0.75rem; font-weight:700; color:var(--accent-blue); background:#eff6ff; border:1px solid #bfdbfe; padding:2px 10px; border-radius:9999px;">Minimal Rp 15.000</span>
                 </div>
-
-                <div class="location-chips" style="margin-top:10px;">
-                  <button type="button" class="location-chip" onclick="setCustomPrice(15000)">Rp 15rb</button>
-                  <button type="button" class="location-chip" onclick="setCustomPrice(25000)">Rp 25rb</button>
-                  <button type="button" class="location-chip" onclick="setCustomPrice(50000)">Rp 50rb</button>
-                  <button type="button" class="location-chip" onclick="setCustomPrice(100000)">Rp 100rb</button>
+                <input type="number" id="order-offer-price" name="offer_price" class="form-input" style="background:#ffffff; font-weight:700; color:var(--accent-blue);" min="15000" step="1000" value="15000" required oninput="updateOrderTotal()">
+                <div id="price-min-warning" style="display:none; font-size:0.75rem; font-weight:600; color:var(--accent-red); margin-top:6px;"></div>
+                <div class="location-chips" id="price-quick-chips" style="margin-top:8px;">
+                  <button type="button" class="location-chip" onclick="setOfferPrice(15000)">Rp 15rb</button>
+                  <button type="button" class="location-chip" onclick="setOfferPrice(20000)">Rp 20rb</button>
+                  <button type="button" class="location-chip" onclick="setOfferPrice(30000)">Rp 30rb</button>
+                  <button type="button" class="location-chip" onclick="setOfferPrice(50000)">Rp 50rb</button>
                 </div>
-                <div style="font-size:0.6875rem; color:var(--text-secondary); margin-top:6px;">Minimal ongkos Rp 5.000. Harga akhir bisa didiskon lagi dengan voucher di bawah.</div>
+                <div style="font-size:0.6875rem; color:var(--text-secondary); margin-top:6px;">Bisa ubah harga lebih tinggi agar mitra lebih cepat mengambil tugasmu.</div>
               </div>
 
               <div class="form-group">
@@ -312,7 +314,7 @@
               <div class="form-row">
                 <div class="form-group" style="margin-bottom: 0;">
                   <label class="form-label" for="order-voucher">Pakai Voucher</label>
-                  <select id="order-voucher" class="form-input" onchange="updateOrderTotal()">
+                  <select id="order-voucher" name="voucher_discount" class="form-input" onchange="updateOrderTotal()">
                     <option value="0">Tanpa Voucher</option>
                     <option value="5000">HEMAT5RB (-Rp 5.000)</option>
                     <option value="10000">SURUHKILAT (-Rp 10.000)</option>
@@ -984,6 +986,16 @@
       return sel && sel.value === CUSTOM_SERVICE_VALUE;
     }
 
+    function getSelectedServiceMeta() {
+      const sel = document.getElementById('order-service');
+      const opt = sel?.options[sel.selectedIndex];
+      return {
+        name: sel ? sel.value : 'Antar Paket & Dokumen',
+        defaultPrice: parseInt(opt?.dataset.price || 15000, 10),
+        minPrice: parseInt(opt?.dataset.min || 5000, 10),
+      };
+    }
+
     function syncCustomServiceType() {
       const hiddenService = document.getElementById('order-service-hidden');
       const sel = document.getElementById('order-service');
@@ -998,6 +1010,34 @@
 
       const detail = document.getElementById('order-summary-detail');
       if (detail) detail.textContent = hiddenService.value;
+    }
+
+    function renderPriceQuickChips(minPrice) {
+      const container = document.getElementById('price-quick-chips');
+      if (!container) return;
+      const presets = minPrice <= 5000
+        ? [5000, 15000, 25000, 50000]
+        : [minPrice, minPrice + 5000, minPrice + 15000, minPrice + 35000];
+
+      container.innerHTML = presets.map(function(val) {
+        return '<button type="button" class="location-chip" onclick="setOfferPrice(' + val + ')">Rp ' + (val / 1000) + 'rb</button>';
+      }).join('');
+    }
+
+    function applyServicePricingMeta() {
+      const meta = getSelectedServiceMeta();
+      const priceInput = document.getElementById('order-offer-price');
+      const minBadge = document.getElementById('price-min-badge');
+
+      if (priceInput) {
+        priceInput.min = meta.minPrice;
+        priceInput.value = meta.defaultPrice;
+        priceInput.placeholder = 'Minimal Rp ' + meta.minPrice.toLocaleString('id-ID');
+      }
+      if (minBadge) {
+        minBadge.textContent = 'Minimal Rp ' + meta.minPrice.toLocaleString('id-ID');
+      }
+      renderPriceQuickChips(meta.minPrice);
     }
 
     function toggleCustomMode(isCustom) {
@@ -1018,10 +1058,10 @@
       syncCustomServiceType();
     }
 
-    function setCustomPrice(amount) {
-      const customPriceInput = document.getElementById('order-custom-price');
-      if (customPriceInput) {
-        customPriceInput.value = amount;
+    function setOfferPrice(amount) {
+      const priceInput = document.getElementById('order-offer-price');
+      if (priceInput) {
+        priceInput.value = amount;
       }
       updateOrderTotal();
     }
@@ -1034,6 +1074,7 @@
       if (!customTitleEdited && titleInput) {
         titleInput.value = service === CUSTOM_SERVICE_VALUE ? '' : service;
       }
+      applyServicePricingMeta();
       toggleCustomMode(service === CUSTOM_SERVICE_VALUE);
       updateOrderTotal();
     }
@@ -1047,23 +1088,34 @@
       if (!customTitleEdited && titleInput) {
         titleInput.value = service === CUSTOM_SERVICE_VALUE ? '' : service;
       }
+      applyServicePricingMeta();
       toggleCustomMode(service === CUSTOM_SERVICE_VALUE);
       updateOrderTotal();
       document.getElementById('order-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     function updateOrderTotal() {
-      const sel = document.getElementById('order-service');
-      const opt = sel?.options[sel.selectedIndex];
-      let basePrice = parseInt(opt?.dataset.price || 15000, 10);
+      const meta = getSelectedServiceMeta();
+      const priceInput = document.getElementById('order-offer-price');
+      const warningEl = document.getElementById('price-min-warning');
 
-      if (isCustomServiceSelected()) {
-        const customRaw = parseInt(document.getElementById('order-custom-price')?.value || 0, 10);
-        basePrice = isNaN(customRaw) ? 0 : Math.max(5000, customRaw);
+      const rawInput = parseInt(priceInput?.value || '0', 10);
+      const isBelowMin = isNaN(rawInput) || rawInput < meta.minPrice;
+
+      if (warningEl && priceInput) {
+        if (isBelowMin) {
+          warningEl.style.display = 'block';
+          warningEl.textContent = 'Ongkos minimal untuk layanan ini adalah Rp ' + meta.minPrice.toLocaleString('id-ID') + '.';
+          priceInput.style.borderColor = 'var(--accent-red)';
+        } else {
+          warningEl.style.display = 'none';
+          priceInput.style.borderColor = '';
+        }
       }
 
+      const validOffer = isNaN(rawInput) ? meta.minPrice : Math.max(meta.minPrice, rawInput);
       const voucher = parseInt(document.getElementById('order-voucher')?.value || 0, 10);
-      const total = Math.max(5000, basePrice - voucher);
+      const total = Math.max(5000, validOffer - voucher);
 
       const hiddenPrice = document.getElementById('order-price-hidden');
       if (hiddenPrice) hiddenPrice.value = total;
@@ -1074,10 +1126,22 @@
       syncCustomServiceType();
     }
 
-    document.getElementById('orderForm')?.addEventListener('submit', function() {
-      if (isCustomServiceSelected()) {
-        syncCustomServiceType();
+    document.getElementById('orderForm')?.addEventListener('submit', function(e) {
+      const meta = getSelectedServiceMeta();
+      const priceInput = document.getElementById('order-offer-price');
+      const rawInput = parseInt(priceInput?.value || '0', 10);
+
+      if (isNaN(rawInput) || rawInput < meta.minPrice) {
+        e.preventDefault();
         updateOrderTotal();
+        priceInput?.focus();
+        return;
+      }
+
+      syncCustomServiceType();
+      updateOrderTotal();
+
+      if (isCustomServiceSelected()) {
         const customDur = document.getElementById('order-custom-duration')?.value.trim();
         const notes = document.getElementById('order-notes');
         if (customDur && notes && !notes.value.includes('[Estimasi Waktu:')) {
@@ -1099,8 +1163,10 @@
           if (customInput) customInput.value = rawService.replace(/^Custom:\s*/i, '');
         }
         onServiceSelectChange(sel);
-        if (sel.value === CUSTOM_SERVICE_VALUE && btn.dataset.price) {
-          setCustomPrice(parseInt(btn.dataset.price, 10) || 25000);
+        if (btn.dataset.price) {
+          const meta = getSelectedServiceMeta();
+          const savedPrice = parseInt(btn.dataset.price, 10) || meta.defaultPrice;
+          setOfferPrice(Math.max(meta.minPrice, savedPrice));
         }
       }
       if (titleInput && btn.dataset.title) {

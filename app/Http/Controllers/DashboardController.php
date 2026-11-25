@@ -89,11 +89,31 @@ class DashboardController extends Controller
             return redirect()->route('login');
         }
 
+        $minPrices = [
+            'Antar Paket & Dokumen' => 15000,
+            'Beli Makan & Minum'    => 12000,
+            'Titip Belanja & Antre' => 18000,
+            'Bersih Rumah & Kost'   => 45000,
+            'Jemput / Antar Orang'  => 14000,
+        ];
+
+        $serviceMin = $minPrices[$request->service_type] ?? 5000;
+
         $request->validate([
-            'title'        => 'required|string|max:255',
-            'service_type' => 'required|string',
-            'price'        => 'required|numeric|min:5000',
+            'title'            => 'required|string|max:255',
+            'service_type'     => 'required|string|max:255',
+            'offer_price'      => 'nullable|numeric|min:' . $serviceMin,
+            'voucher_discount' => 'nullable|numeric|in:0,5000,10000',
+            'price'            => 'required|numeric|min:5000',
+        ], [
+            'offer_price.min' => 'Ongkos minimal untuk layanan ' . $request->service_type . ' adalah Rp ' . number_format($serviceMin, 0, ',', '.') . '.',
         ]);
+
+        $offerPrice = $request->filled('offer_price')
+            ? (int) $request->offer_price
+            : max($serviceMin, (int) $request->price);
+        $voucherDiscount = (int) ($request->input('voucher_discount', 0));
+        $finalPrice = max(5000, $offerPrice - $voucherDiscount);
 
         Order::create([
             'penyuruh_id'          => $user->id,
@@ -102,7 +122,7 @@ class DashboardController extends Controller
             'pickup_location'      => $request->pickup_location,
             'destination_location' => $request->destination_location,
             'description'          => $request->description,
-            'price'                => $request->price,
+            'price'                => $finalPrice,
             'status'               => 'menunggu', // Belum ada yang ambil
         ]);
 
