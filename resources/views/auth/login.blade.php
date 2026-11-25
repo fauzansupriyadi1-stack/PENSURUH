@@ -1,4 +1,4 @@
-﻿@php
+@php
     $isRegister = request()->is('register') || request()->routeIs('register') || request()->query('tab') === 'register';
 @endphp
 <!DOCTYPE html>
