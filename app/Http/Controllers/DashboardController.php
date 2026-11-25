@@ -59,8 +59,74 @@ class DashboardController extends Controller
 
         // Seluruh akun pengguna untuk kontrol penuh Admin di tab Ringkasan
         $allUsers = User::withCount(['ordersCreated', 'ordersTaken'])
+            ->with(['ordersCreated.disuruh', 'ordersTaken.penyuruh'])
             ->latest()
             ->get();
+
+        // Data detail user (saldo/pendapatan/pengeluaran & history order) untuk modal detail Admin
+        $userDetailsMap = [];
+        foreach ($allUsers as $u) {
+            $created = $u->ordersCreated ?? collect();
+            $taken = $u->ordersTaken ?? collect();
+
+            $spentCompleted = $created->where('status', 'selesai')->sum('price');
+            $earnedCompleted = $taken->where('status', 'selesai')->sum('price');
+
+            $historyItems = collect();
+            foreach ($created as $ord) {
+                $historyItems->push([
+                    'id'                   => $ord->id,
+                    'context'              => 'Penyuruh',
+                    'title'                => $ord->title ?? $ord->service_type,
+                    'service_type'         => $ord->service_type,
+                    'status'               => $ord->status,
+                    'price'                => (int) ($ord->price ?? 0),
+                    'pickup_location'      => $ord->pickup_location ?? '-',
+                    'destination_location' => $ord->destination_location ?? '-',
+                    'counterpart'          => $ord->disuruh->name ?? 'Belum ada mitra',
+                    'date'                 => $ord->created_at ? $ord->created_at->format('d M Y, H:i') : '-',
+                    'timestamp'            => $ord->created_at ? $ord->created_at->timestamp : 0,
+                ]);
+            }
+            foreach ($taken as $ord) {
+                $historyItems->push([
+                    'id'                   => $ord->id,
+                    'context'              => 'Mitra',
+                    'title'                => $ord->title ?? $ord->service_type,
+                    'service_type'         => $ord->service_type,
+                    'status'               => $ord->status,
+                    'price'                => (int) ($ord->price ?? 0),
+                    'pickup_location'      => $ord->pickup_location ?? '-',
+                    'destination_location' => $ord->destination_location ?? '-',
+                    'counterpart'          => $ord->penyuruh->name ?? '-',
+                    'date'                 => $ord->created_at ? $ord->created_at->format('d M Y, H:i') : '-',
+                    'timestamp'            => $ord->created_at ? $ord->created_at->timestamp : 0,
+                ]);
+            }
+
+            $allUserOrders = $created->merge($taken);
+            $estimatedBalance = $u->role === 'disuruh'
+                ? (875000 + $earnedCompleted)
+                : max(0, 1450000 - $spentCompleted);
+
+            $userDetailsMap[$u->id] = [
+                'id'                => $u->id,
+                'name'              => $u->name,
+                'email'             => $u->email ?? '-',
+                'phone'             => $u->phone ?? 'Belum ada No. HP',
+                'role'              => $u->role,
+                'joined_at'         => $u->created_at ? $u->created_at->format('d M Y') : '-',
+                'estimated_balance' => $estimatedBalance,
+                'total_spent'       => (int) $spentCompleted,
+                'total_earned'      => (int) $earnedCompleted,
+                'total_created'     => $created->count(),
+                'total_taken'       => $taken->count(),
+                'active_count'      => $allUserOrders->whereIn('status', ['menunggu', 'diambil'])->count(),
+                'completed_count'   => $allUserOrders->where('status', 'selesai')->count(),
+                'cancelled_count'   => $allUserOrders->where('status', 'dibatalkan')->count(),
+                'history'           => $historyItems->sortByDesc('timestamp')->values()->all(),
+            ];
+        }
 
         // Statistik Admin
         $adminStats = [
@@ -81,6 +147,7 @@ class DashboardController extends Controller
             'allOrders',
             'completedOrders',
             'allUsers',
+            'userDetailsMap',
             'adminStats'
         ));
     }

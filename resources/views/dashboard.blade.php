@@ -71,15 +71,6 @@
       </div>
 
       <div class="header-right">
-        @if($user && $user->role === 'admin')
-        <!-- Admin Role Switcher -->
-        <div class="mode-switcher desktop-only-mode" role="group" aria-label="Pilih mode role">
-          <a href="{{ route('dashboard.switch-role', 'penyuruh') }}" class="mode-link {{ $activeRole === 'penyuruh' ? 'active' : '' }}" data-role="penyuruh">Penyuruh</a>
-          <a href="{{ route('dashboard.switch-role', 'disuruh') }}" class="mode-link {{ $activeRole === 'disuruh' ? 'active' : '' }}" data-role="disuruh">Mitra</a>
-          <a href="{{ route('dashboard.switch-role', 'admin') }}" class="mode-link {{ $activeRole === 'admin' ? 'active' : '' }}" data-role="admin">Admin</a>
-        </div>
-        @endif
-
         <a href="/" class="btn-header-link" title="Kembali ke Landing Page">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           <span class="hide-mobile">Beranda Web</span>
@@ -107,14 +98,6 @@
             Riwayat <span class="badge-count">{{ $riwayatBadgeCount }}</span>
           </a>
         </nav>
-
-        @if($user && $user->role === 'admin')
-        <div class="mode-switcher" role="group" aria-label="Pilih mode role mobile">
-          <a href="{{ route('dashboard.switch-role', 'penyuruh') }}" class="mode-link {{ $activeRole === 'penyuruh' ? 'active' : '' }}" data-role="penyuruh">Penyuruh</a>
-          <a href="{{ route('dashboard.switch-role', 'disuruh') }}" class="mode-link {{ $activeRole === 'disuruh' ? 'active' : '' }}" data-role="disuruh">Mitra</a>
-          <a href="{{ route('dashboard.switch-role', 'admin') }}" class="mode-link {{ $activeRole === 'admin' ? 'active' : '' }}" data-role="admin">Admin</a>
-        </div>
-        @endif
       </div>
     </div>
   </header>
@@ -516,16 +499,34 @@
         <div class="card">
           <div class="card-header">
             <h3 class="card-title">Riwayat Mutasi Dompet</h3>
+            <div class="search-box" style="min-width:210px;">
+              <span class="search-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </span>
+              <input type="text" id="penyuruh-history-search" placeholder="Cari riwayat pesanan.." onkeyup="applyListFilter('penyuruh-history-list')">
+            </div>
           </div>
-          <ul class="transaction-list" id="penyuruh-history-list">
-            @forelse($penyuruhCompleted as $ord)
-              <li class="transaction-item">
-                <div class="transaction-icon send" aria-hidden="true">↑</div>
+
+          <div class="filter-tabs" data-filter-target="penyuruh-history-list">
+            <button type="button" class="filter-tab active" onclick="setListStatusFilter(this, 'penyuruh-history-list', 'all')">Semua</button>
+            <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'penyuruh-history-list', 'selesai')">Selesai</button>
+            <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'penyuruh-history-list', 'dibatalkan')">Dibatalkan</button>
+          </div>
+
+          <ul class="transaction-list" id="penyuruh-history-list" data-active-status="all">
+            @forelse($myOrders->whereIn('status', ['selesai', 'dibatalkan']) as $ord)
+              <li class="transaction-item" data-status="{{ $ord->status }}" data-search="{{ strtolower(($ord->title ?? $ord->service_type) . ' ' . ($ord->disuruh->name ?? '')) }}">
+                <div class="transaction-icon {{ $ord->status === 'dibatalkan' ? 'send' : 'send' }}" aria-hidden="true">{{ $ord->status === 'dibatalkan' ? '✕' : '↑' }}</div>
                 <div class="transaction-info">
                   <div class="transaction-name">{{ $ord->title ?? $ord->service_type }}</div>
-                  <div class="transaction-date">{{ $ord->updated_at->format('d M Y, H:i') }} WIB</div>
+                  <div class="transaction-date">
+                    {{ $ord->updated_at->format('d M Y, H:i') }} WIB ·
+                    <strong style="color:{{ $ord->status === 'dibatalkan' ? '#dc2626' : '#059669' }};">{{ $ord->status === 'dibatalkan' ? 'Dibatalkan' : 'Selesai' }}</strong>
+                  </div>
                 </div>
-                <span class="transaction-amount debit">-Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
+                <span class="transaction-amount {{ $ord->status === 'dibatalkan' ? '' : 'debit' }}" style="{{ $ord->status === 'dibatalkan' ? 'color:var(--text-muted); text-decoration:line-through;' : '' }}">
+                  -Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}
+                </span>
               </li>
             @empty
               <li style="padding:28px; text-align:center; color:var(--text-muted); font-size:0.875rem;">Belum ada riwayat transaksi.</li>
@@ -682,10 +683,23 @@
         <div class="card">
           <div class="card-header">
             <h3 class="card-title">Semua Tugas Mitra</h3>
+            <div class="search-box" style="min-width:210px;">
+              <span class="search-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </span>
+              <input type="text" id="mitra-task-search" placeholder="Cari tugas atau pemesan.." onkeyup="applyListFilter('mitra-task-list')">
+            </div>
           </div>
-          <ul class="task-list-compact">
+
+          <div class="filter-tabs" data-filter-target="mitra-task-list">
+            <button type="button" class="filter-tab active" onclick="setListStatusFilter(this, 'mitra-task-list', 'all')">Semua</button>
+            <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'mitra-task-list', 'diambil')">Berjalan</button>
+            <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'mitra-task-list', 'selesai')">Selesai</button>
+          </div>
+
+          <ul class="task-list-compact" id="mitra-task-list" data-active-status="all">
             @forelse($mitraAllTasks as $ord)
-              <li class="task-item-compact">
+              <li class="task-item-compact" data-status="{{ $ord->status }}" data-search="{{ strtolower(($ord->title ?? $ord->service_type) . ' ' . ($ord->penyuruh->name ?? '')) }}">
                 <span class="task-status-badge {{ $ord->status === 'selesai' ? 'done' : 'aktif' }}">{{ $ord->status === 'selesai' ? 'Selesai' : 'Berjalan' }}</span>
                 <div class="task-compact-info">
                   <div class="task-compact-title">{{ $ord->title ?? $ord->service_type }}</div>
@@ -704,11 +718,23 @@
       <div class="tab-content" data-tab-panel="riwayat">
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">Riwayat Komisi & Pencairan Mitra</h3>
+            <h3 class="card-title">Riwayat Komisi &amp; Pencairan Mitra</h3>
+            <div class="search-box" style="min-width:210px;">
+              <span class="search-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </span>
+              <input type="text" id="mitra-history-search" placeholder="Cari komisi tugas.." onkeyup="applyListFilter('mitra-history-list')">
+            </div>
           </div>
-          <ul class="transaction-list">
+
+          <div class="filter-tabs" data-filter-target="mitra-history-list">
+            <button type="button" class="filter-tab active" onclick="setListStatusFilter(this, 'mitra-history-list', 'all')">Semua</button>
+            <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'mitra-history-list', 'selesai')">Selesai</button>
+          </div>
+
+          <ul class="transaction-list" id="mitra-history-list" data-active-status="all">
             @forelse($mitraCompleted as $ord)
-              <li class="transaction-item">
+              <li class="transaction-item" data-status="{{ $ord->status }}" data-search="{{ strtolower(($ord->title ?? $ord->service_type) . ' ' . ($ord->penyuruh->name ?? '')) }}">
                 <div class="transaction-icon receive" aria-hidden="true">+</div>
                 <div class="transaction-info">
                   <div class="transaction-name">Komisi Tugas: {{ $ord->title ?? $ord->service_type }}</div>
@@ -789,6 +815,7 @@
                   <th>Peran</th>
                   <th>Aktivitas Tugas</th>
                   <th>Status</th>
+                  <th>Detail Data</th>
                   <th>Kontrol Role</th>
                 </tr>
               </thead>
@@ -826,6 +853,9 @@
                     </td>
                     <td><span class="status-dot">Aktif</span></td>
                     <td>
+                      <button type="button" class="btn btn-outline" style="padding:5px 12px; font-size:0.75rem;" onclick="openAdminUserDetail({{ $u->id }})">Lihat Detail</button>
+                    </td>
+                    <td>
                       <form action="{{ route('users.update-role', $u->slug) }}" method="POST" style="margin:0;">
                         @csrf
                         <select name="role" onchange="this.form.submit()" class="role-select" aria-label="Ubah role {{ $u->name }}">
@@ -849,10 +879,25 @@
         <div class="card">
           <div class="card-header">
             <h3 class="card-title">Monitoring Seluruh Pesanan Platform</h3>
+            <div class="search-box" style="min-width:220px;">
+              <span class="search-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </span>
+              <input type="text" id="admin-orders-search" placeholder="Cari pesanan, penyuruh, mitra.." onkeyup="applyListFilter('admin-orders-list')">
+            </div>
           </div>
-          <ul class="task-list-compact">
+
+          <div class="filter-tabs" data-filter-target="admin-orders-list">
+            <button type="button" class="filter-tab active" onclick="setListStatusFilter(this, 'admin-orders-list', 'all')">Semua</button>
+            <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'admin-orders-list', 'menunggu')">Menunggu</button>
+            <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'admin-orders-list', 'diambil')">Diambil</button>
+            <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'admin-orders-list', 'selesai')">Selesai</button>
+            <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'admin-orders-list', 'dibatalkan')">Dibatalkan</button>
+          </div>
+
+          <ul class="task-list-compact" id="admin-orders-list" data-active-status="all">
             @forelse($allOrders as $ord)
-              <li class="task-item-compact">
+              <li class="task-item-compact" data-status="{{ $ord->status }}" data-search="{{ strtolower('#ps-' . $ord->id . ' ' . ($ord->title ?? $ord->service_type) . ' ' . ($ord->penyuruh->name ?? '') . ' ' . ($ord->disuruh->name ?? '')) }}">
                 <span class="task-status-badge {{ $ord->status === 'selesai' ? 'done' : ($ord->status === 'diambil' ? 'aktif' : ($ord->status === 'dibatalkan' ? 'cancelled' : 'pending')) }}" style="{{ $ord->status === 'dibatalkan' ? 'background:#fef2f2; color:#dc2626;' : '' }}">
                   {{ $ord->status === 'selesai' ? 'Selesai' : ($ord->status === 'diambil' ? 'Diambil' : ($ord->status === 'dibatalkan' ? 'Dibatalkan' : 'Menunggu')) }}
                 </span>
@@ -882,19 +927,37 @@
         <div class="card">
           <div class="card-header">
             <h3 class="card-title">Log Transaksi Platform</h3>
+            <div class="search-box" style="min-width:220px;">
+              <span class="search-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </span>
+              <input type="text" id="admin-history-search" placeholder="Cari #PS-ID, judul, atau nama.." onkeyup="applyListFilter('admin-history-list')">
+            </div>
           </div>
-          <ul class="transaction-list">
-            @forelse($completedOrders as $ord)
-              <li class="transaction-item">
-                <div class="transaction-icon receive" aria-hidden="true">✓</div>
+
+          <div class="filter-tabs" data-filter-target="admin-history-list">
+            <button type="button" class="filter-tab active" onclick="setListStatusFilter(this, 'admin-history-list', 'all')">Semua</button>
+            <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'admin-history-list', 'selesai')">Selesai</button>
+            <button type="button" class="filter-tab" onclick="setListStatusFilter(this, 'admin-history-list', 'dibatalkan')">Dibatalkan</button>
+          </div>
+
+          <ul class="transaction-list" id="admin-history-list" data-active-status="all">
+            @forelse($allOrders->whereIn('status', ['selesai', 'dibatalkan']) as $ord)
+              <li class="transaction-item" data-status="{{ $ord->status }}" data-search="{{ strtolower('#ps-' . $ord->id . ' ' . ($ord->title ?? $ord->service_type) . ' ' . ($ord->penyuruh->name ?? '') . ' ' . ($ord->disuruh->name ?? '')) }}">
+                <div class="transaction-icon {{ $ord->status === 'dibatalkan' ? 'send' : 'receive' }}" aria-hidden="true">{{ $ord->status === 'dibatalkan' ? '✕' : '✓' }}</div>
                 <div class="transaction-info">
                   <div class="transaction-name">Order #PS-{{ $ord->id }} · {{ $ord->title ?? $ord->service_type }}</div>
-                  <div class="transaction-date">{{ $ord->updated_at->format('d M Y, H:i') }} WIB</div>
+                  <div class="transaction-date">
+                    {{ $ord->updated_at->format('d M Y, H:i') }} WIB ·
+                    Penyuruh: {{ $ord->penyuruh->name ?? '-' }} ·
+                    Mitra: {{ $ord->disuruh->name ?? '-' }} ·
+                    <strong style="color:{{ $ord->status === 'dibatalkan' ? '#dc2626' : '#059669' }};">{{ $ord->status === 'dibatalkan' ? 'Dibatalkan' : 'Selesai' }}</strong>
+                  </div>
                 </div>
-                <span class="transaction-amount credit">Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
+                <span class="transaction-amount {{ $ord->status === 'dibatalkan' ? '' : 'credit' }}" style="{{ $ord->status === 'dibatalkan' ? 'color:var(--text-muted); text-decoration:line-through;' : '' }}">Rp {{ number_format($ord->price ?? 0, 0, ',', '.') }}</span>
               </li>
             @empty
-              <li style="padding:28px; text-align:center; color:var(--text-muted);">Belum ada transaksi selesai.</li>
+              <li style="padding:28px; text-align:center; color:var(--text-muted);">Belum ada riwayat transaksi.</li>
             @endforelse
           </ul>
         </div>
@@ -992,6 +1055,67 @@
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
         <a id="route-gmaps-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="flex:2; min-width:180px; text-align:center;">Buka Rute di Google Maps</a>
         <button type="button" class="btn btn-outline" style="flex:1; min-width:100px;" onclick="closeRouteMapModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- MODAL: DETAIL PENGGUNA & HISTORY (ADMIN)    -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="modal-overlay" id="admin-user-detail-modal" role="dialog" aria-modal="true" aria-labelledby="admin-detail-name">
+    <div class="modal-box" style="max-width:680px; max-height:90vh; overflow-y:auto;">
+      <div class="modal-header">
+        <div>
+          <div style="font-size:0.6875rem; font-weight:700; color:var(--accent-blue); text-transform:uppercase; letter-spacing:0.04em;">Detail Akun &amp; Riwayat Transaksi</div>
+          <h3 id="admin-detail-name" style="font-size:1.125rem; font-weight:800; margin-top:2px;">-</h3>
+          <div id="admin-detail-meta" style="font-size:0.75rem; color:var(--text-secondary);">-</div>
+        </div>
+        <button type="button" class="modal-close" onclick="closeAdminUserDetail()" aria-label="Tutup">✕</button>
+      </div>
+
+      <!-- Ringkasan Saldo & Aktivitas -->
+      <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-bottom:16px;" id="admin-detail-stats-grid">
+        <div style="background:linear-gradient(135deg, #0471fc 0%, #0257c7 100%); color:#ffffff; border-radius:14px; padding:14px;">
+          <div style="font-size:0.6875rem; opacity:0.85; font-weight:600;" id="admin-detail-balance-label">Estimasi Saldo</div>
+          <div style="font-size:1.25rem; font-weight:800; margin-top:2px;" id="admin-detail-balance">Rp 0</div>
+        </div>
+        <div style="background:var(--bg-gray); border:1px solid var(--border); border-radius:14px; padding:14px;">
+          <div style="font-size:0.6875rem; color:var(--text-secondary); font-weight:600;" id="admin-detail-turnover-label">Total Transaksi Selesai</div>
+          <div style="font-size:1.25rem; font-weight:800; color:var(--accent-green); margin-top:2px;" id="admin-detail-turnover">Rp 0</div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:16px;">
+        <div style="background:var(--bg-gray); border-radius:10px; padding:10px; text-align:center;">
+          <div style="font-size:0.6875rem; color:var(--text-muted); font-weight:600;">Aktif</div>
+          <div style="font-size:1rem; font-weight:800; color:var(--accent-blue);" id="admin-detail-active-count">0</div>
+        </div>
+        <div style="background:var(--bg-gray); border-radius:10px; padding:10px; text-align:center;">
+          <div style="font-size:0.6875rem; color:var(--text-muted); font-weight:600;">Selesai</div>
+          <div style="font-size:1rem; font-weight:800; color:var(--accent-green);" id="admin-detail-completed-count">0</div>
+        </div>
+        <div style="background:var(--bg-gray); border-radius:10px; padding:10px; text-align:center;">
+          <div style="font-size:0.6875rem; color:var(--text-muted); font-weight:600;">Dibatalkan</div>
+          <div style="font-size:1rem; font-weight:800; color:var(--accent-red);" id="admin-detail-cancelled-count">0</div>
+        </div>
+      </div>
+
+      <!-- Filter Riwayat User di Modal Admin -->
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+        <div style="font-size:0.875rem; font-weight:700;">Riwayat Order &amp; Aktivitas</div>
+        <div class="filter-tabs" style="margin-bottom:0;" id="admin-modal-filter-tabs">
+          <button type="button" class="filter-tab active" style="padding:4px 10px; font-size:0.75rem;" onclick="filterAdminModalHistory(this, 'all')">Semua</button>
+          <button type="button" class="filter-tab" style="padding:4px 10px; font-size:0.75rem;" onclick="filterAdminModalHistory(this, 'selesai')">Selesai</button>
+          <button type="button" class="filter-tab" style="padding:4px 10px; font-size:0.75rem;" onclick="filterAdminModalHistory(this, 'aktif')">Aktif</button>
+          <button type="button" class="filter-tab" style="padding:4px 10px; font-size:0.75rem;" onclick="filterAdminModalHistory(this, 'dibatalkan')">Batal</button>
+        </div>
+      </div>
+
+      <ul class="task-list-compact" id="admin-detail-history-list" style="max-height:260px; overflow-y:auto; border:1px solid var(--border-light); border-radius:12px; padding:0 12px;">
+      </ul>
+
+      <div style="margin-top:14px; text-align:right;">
+        <button type="button" class="btn btn-outline" onclick="closeAdminUserDetail()">Tutup</button>
       </div>
     </div>
   </div>
@@ -1104,6 +1228,128 @@
       btn.classList.add('active');
       document.querySelectorAll('#penyuruh-task-list .task-item-compact').forEach(function(li) {
         li.style.display = (status === 'all' || li.dataset.status === status) ? '' : 'none';
+      });
+    }
+
+    // Unified filter + search untuk tab Pesanan & Riwayat
+    const LIST_SEARCH_INPUTS = {
+      'penyuruh-history-list': 'penyuruh-history-search',
+      'mitra-task-list': 'mitra-task-search',
+      'mitra-history-list': 'mitra-history-search',
+      'admin-orders-list': 'admin-orders-search',
+      'admin-history-list': 'admin-history-search'
+    };
+
+    function setListStatusFilter(btn, listId, status) {
+      btn.closest('.filter-tabs').querySelectorAll('.filter-tab').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      const list = document.getElementById(listId);
+      if (list) list.dataset.activeStatus = status;
+      applyListFilter(listId);
+    }
+
+    function applyListFilter(listId) {
+      const list = document.getElementById(listId);
+      if (!list) return;
+      const activeStatus = list.dataset.activeStatus || 'all';
+      const searchId = LIST_SEARCH_INPUTS[listId];
+      const q = searchId ? (document.getElementById(searchId)?.value.toLowerCase().trim() || '') : '';
+
+      list.querySelectorAll('li[data-status]').forEach(function(li) {
+        const statusMatch = activeStatus === 'all' || li.dataset.status === activeStatus;
+        const searchText = li.dataset.search || li.textContent.toLowerCase();
+        const searchMatch = !q || searchText.includes(q);
+        li.style.display = (statusMatch && searchMatch) ? '' : 'none';
+      });
+    }
+
+    // Admin User Detail & History Modal
+    const adminUserDetailsMap = @json($userDetailsMap ?? []);
+    let currentAdminModalUser = null;
+
+    function openAdminUserDetail(userId) {
+      const data = adminUserDetailsMap[userId];
+      if (!data) return;
+      currentAdminModalUser = data;
+
+      const roleLabel = data.role === 'disuruh' ? 'MITRA' : data.role.toUpperCase();
+      document.getElementById('admin-detail-name').textContent = data.name + ' (' + roleLabel + ')';
+      document.getElementById('admin-detail-meta').textContent =
+        'ID #' + data.id + ' · ' + data.email + ' · ' + data.phone + ' · Gabung ' + data.joined_at;
+
+      const isMitra = data.role === 'disuruh';
+      document.getElementById('admin-detail-balance-label').textContent = isMitra ? 'Estimasi Saldo Mitra' : 'Estimasi Saldo Dompet';
+      document.getElementById('admin-detail-balance').textContent = 'Rp ' + Number(data.estimated_balance || 0).toLocaleString('id-ID');
+
+      document.getElementById('admin-detail-turnover-label').textContent = isMitra ? 'Total Pendapatan Selesai' : 'Total Pengeluaran Selesai';
+      const turnoverVal = isMitra ? data.total_earned : data.total_spent;
+      document.getElementById('admin-detail-turnover').textContent = 'Rp ' + Number(turnoverVal || 0).toLocaleString('id-ID');
+
+      document.getElementById('admin-detail-active-count').textContent = data.active_count;
+      document.getElementById('admin-detail-completed-count').textContent = data.completed_count;
+      document.getElementById('admin-detail-cancelled-count').textContent = data.cancelled_count;
+
+      const tabs = document.querySelectorAll('#admin-modal-filter-tabs .filter-tab');
+      tabs.forEach(function(t, i) { t.classList.toggle('active', i === 0); });
+      renderAdminModalHistory('all');
+
+      document.getElementById('admin-user-detail-modal')?.classList.add('open');
+    }
+
+    function closeAdminUserDetail() {
+      document.getElementById('admin-user-detail-modal')?.classList.remove('open');
+    }
+
+    document.getElementById('admin-user-detail-modal')?.addEventListener('click', function(e) {
+      if (e.target === this) closeAdminUserDetail();
+    });
+
+    function filterAdminModalHistory(btn, status) {
+      document.querySelectorAll('#admin-modal-filter-tabs .filter-tab').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      renderAdminModalHistory(status);
+    }
+
+    function renderAdminModalHistory(filterStatus) {
+      const listEl = document.getElementById('admin-detail-history-list');
+      if (!listEl || !currentAdminModalUser) return;
+
+      const items = (currentAdminModalUser.history || []).filter(function(item) {
+        if (filterStatus === 'all') return true;
+        if (filterStatus === 'aktif') return item.status === 'menunggu' || item.status === 'diambil';
+        return item.status === filterStatus;
+      });
+
+      if (items.length === 0) {
+        listEl.innerHTML = '<li style="padding:24px; text-align:center; color:var(--text-muted); font-size:0.8125rem;">Tidak ada riwayat order pada filter ini.</li>';
+        return;
+      }
+
+      listEl.innerHTML = items.map(function(item) {
+        const badgeStyle = item.status === 'dibatalkan'
+          ? 'background:#fef2f2; color:#dc2626;'
+          : '';
+        const badgeCls = item.status === 'selesai'
+          ? 'done'
+          : (item.status === 'diambil' ? 'aktif' : (item.status === 'dibatalkan' ? 'cancelled' : 'pending'));
+        const badgeText = item.status === 'selesai'
+          ? 'Selesai'
+          : (item.status === 'diambil' ? 'Diambil' : (item.status === 'dibatalkan' ? 'Dibatalkan' : 'Menunggu'));
+
+        return '<li class="task-item-compact">' +
+          '<span class="task-status-badge ' + badgeCls + '" style="' + badgeStyle + '">' + badgeText + '</span>' +
+          '<div class="task-compact-info">' +
+            '<div class="task-compact-title">#PS-' + item.id + ' · ' + escapeHtml(item.title) + '</div>' +
+            '<div class="task-compact-meta">' + escapeHtml(item.context) + ' · ' + escapeHtml(item.date) + ' · Partner: ' + escapeHtml(item.counterpart) + '</div>' +
+          '</div>' +
+          '<span class="task-compact-price">Rp ' + Number(item.price).toLocaleString('id-ID') + '</span>' +
+        '</li>';
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, function(ch) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
       });
     }
 
