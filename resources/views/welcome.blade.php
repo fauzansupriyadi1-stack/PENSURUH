@@ -418,18 +418,18 @@
                         </h4>
                         <div class="space-y-1.5 text-white">
                             <!-- Phone -->
-                            <a href="tel:012345696789" class="flex items-center gap-2 font-bold text-xs sm:text-sm md:text-[15px] hover:underline">
+                            <a href="https://wa.me/+6285746035921" target="_blank" class="flex items-center gap-2 font-bold text-xs sm:text-sm md:text-[15px] hover:underline">
                                 <svg class="w-4 h-4 fill-current flex-shrink-0" viewBox="0 0 24 24">
                                     <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
                                 </svg>
-                                <span>(0123) 4569 6789</span>
+                                <span>+62 857-4603-5921</span>
                             </a>
                             <!-- Email -->
-                            <a href="mailto:customercare@gmail.com" class="flex items-center gap-2 font-bold text-xs sm:text-sm md:text-[15px] hover:underline">
+                            <a href="mailto:fauzansupriyadi1@gmail.com" class="flex items-center gap-2 font-bold text-xs sm:text-sm md:text-[15px] hover:underline">
                                 <svg class="w-4 h-4 fill-none stroke-currentColor stroke-2 flex-shrink-0" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                                 </svg>
-                                <span>customercare@gmail.com</span>
+                                <span>fauzansupriyadi1@gmail.com</span>
                             </a>
                         </div>
                     </div>
@@ -467,9 +467,9 @@
                             <p class="text-[#0471fc] font-bold text-[11px] sm:text-xs leading-snug">
                                 Cari penghasilan tambahan yang fleksibel?
                             </p>
-                            <button onclick="openModal('registerModal')" class="bg-[#0471fc] hover:bg-[#0060db] text-white text-[12px] font-bold rounded-full px-5 py-1.5 shadow-sm transition-all active:scale-95 cursor-pointer">
+                            <a href="/register" class="bg-[#0471fc] hover:bg-[#0060db] text-white text-[12px] font-bold rounded-full px-5 py-1.5 shadow-sm transition-all active:scale-95 cursor-pointer inline-block">
                                 Daftar Disini
-                            </button>
+                            </a>
                         </div>
                     </div>
 
